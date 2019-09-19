@@ -25,6 +25,7 @@
 package picard.util;
 
 import org.apache.commons.math3.random.RandomDataGenerator;
+import picard.PicardException;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -38,23 +39,30 @@ import static java.lang.Math.pow;
  * @author Tim Fennell
  */
 final public class MathUtil {
-    private MathUtil(){};
+    private MathUtil() {
+    }
 
-    /** The double value closest to 1 while still being less than 1. */
+    /**
+     * The double value closest to 1 while still being less than 1.
+     */
     public static final double MAX_PROB_BELOW_ONE = 0.9999999999999999d;
 
-    /** Constant to convert between the natural base e and 4.0.  Useful for
-     * entropy calculations on DNA. */
+    /**
+     * Constant to convert between the natural base e and 4.0.  Useful for
+     * entropy calculations on DNA.
+     */
     public static final double LOG_4_BASE_E = Math.log(4.0);
 
     /**
-     *  this function mimics the behavior of log_1p but resulting in log _base 10_ of (1+x) instead of natural log of 1+x
+     * this function mimics the behavior of log_1p but resulting in log _base 10_ of (1+x) instead of natural log of 1+x
      */
-    public static double log10_1p(final double x){
-        return log1p(x)/LOG_10_MATH.log_of_base;
+    public static double log10_1p(final double x) {
+        return log1p(x) / LOG_10_MATH.log_of_base;
     }
 
-    /** Calculated the mean of an array of doubles. */
+    /**
+     * Calculated the mean of an array of doubles.
+     */
     public static double mean(final double[] in, final int start, final int stop) {
         double total = 0;
         for (int i = start; i < stop; ++i) {
@@ -114,6 +122,7 @@ final public class MathUtil {
 
     /**
      * Obtains percentage of two Longs
+     *
      * @param numerator   dividend
      * @param denominator divisor
      * @return numerator/(double)denominator if both are non-null and denominator != 0, else returns null.
@@ -126,8 +135,8 @@ final public class MathUtil {
         }
     }
 
-    /** 
-     * Round off the value to the specified precision. 
+    /**
+     * Round off the value to the specified precision.
      */
     public static double round(final double num, final int precision) {
         BigDecimal bd = new BigDecimal(num);
@@ -137,17 +146,20 @@ final public class MathUtil {
 
     /**
      * Divide two Doubles but return 0.0 if the denominator is 0
-     * @param numerator dividend
+     *
+     * @param numerator   dividend
      * @param denominator divisor
      * @return numerator/denominator unless denominator is 0, in which case returns 0
      */
     public static double divide(final double numerator, final double denominator) {
-        return Math.abs(0.0 - denominator) >  0.000001
+        return Math.abs(0.0 - denominator) > 0.000001
                 ? numerator / denominator
                 : 0.0;
     }
 
-    /** Returns the largest value stored in the array. */
+    /**
+     * Returns the largest value stored in the array.
+     */
     public static double max(final double[] nums) {
         return nums[indexOfMax(nums)];
     }
@@ -158,7 +170,7 @@ final public class MathUtil {
      */
     public static int indexOfMax(final double[] nums) {
         double max = nums[0];
-        int index  = 0;
+        int index = 0;
         for (int i = 1; i < nums.length; ++i) {
             if (nums[i] > max) {
                 max = nums[i];
@@ -169,7 +181,9 @@ final public class MathUtil {
         return index;
     }
 
-    /** Returns the largest value stored in the array. */
+    /**
+     * Returns the largest value stored in the array.
+     */
     public static long max(final long[] nums) {
         return nums[indexOfMax(nums)];
     }
@@ -180,7 +194,7 @@ final public class MathUtil {
      */
     public static int indexOfMax(final long[] nums) {
         long max = nums[0];
-        int index  = 0;
+        int index = 0;
         for (int i = 1; i < nums.length; ++i) {
             if (nums[i] > max) {
                 max = nums[i];
@@ -191,36 +205,47 @@ final public class MathUtil {
         return index;
     }
 
-    /** Returns the smallest value stored in the array. */
+    /**
+     * Returns the smallest value stored in the array.
+     */
     public static double min(final double[] nums) {
         return nums[indexOfMin(nums)];
     }
 
-    /** Returns the smallest value stored in the array. */
+    /**
+     * Returns the smallest value stored in the array.
+     */
     public static int min(final int[] nums) {
         return nums[indexOfMin(nums)];
     }
-    
-    /** Returns the smallest value stored in the array. */
+
+    /**
+     * Returns the smallest value stored in the array.
+     */
     public static short min(final short[] nums) {
         short min = nums[0];
         for (int i = 1; i < nums.length; ++i) {
-            if (nums[i] < min) min = nums[i];
+            if (nums[i] < min) {
+                min = nums[i];
+            }
         }
 
         return min;
     }
 
-    /** Returns the smallest value stored in the array. */
+    /**
+     * Returns the smallest value stored in the array.
+     */
     public static byte min(final byte[] nums) {
         byte min = nums[0];
         for (int i = 1; i < nums.length; ++i) {
-            if (nums[i] < min) min = nums[i];
+            if (nums[i] < min) {
+                min = nums[i];
+            }
         }
 
         return min;
     }
-
 
     /**
      * Returns the index of the smallest element in the array.  If there are multiple equal minima then
@@ -228,7 +253,7 @@ final public class MathUtil {
      */
     public static int indexOfMin(final int[] nums) {
         long min = nums[0];
-        int index  = 0;
+        int index = 0;
         for (int i = 1; i < nums.length; ++i) {
             if (nums[i] < min) {
                 min = nums[i];
@@ -245,7 +270,7 @@ final public class MathUtil {
      */
     public static int indexOfMin(final double[] nums) {
         double min = nums[0];
-        int index  = 0;
+        int index = 0;
         for (int i = 1; i < nums.length; ++i) {
             if (nums[i] < min) {
                 min = nums[i];
@@ -255,17 +280,24 @@ final public class MathUtil {
 
         return index;
     }
-    /** Mimic's R's seq() function to produce a sequence of equally spaced numbers. */
+
+    /**
+     * Mimic's R's seq() function to produce a sequence of equally spaced numbers.
+     */
     public static double[] seq(final double from, final double to, final double by) {
-        if (from < to && by <= 0) return new double[0];
-        if (from > to && by >= 0) return new double[0];
+        if (from < to && by <= 0) {
+            return new double[0];
+        }
+        if (from > to && by >= 0) {
+            return new double[0];
+        }
         final int values = 1 + (int) Math.floor((to - from) / by);
         final double[] results = new double[values];
 
         BigDecimal value = new BigDecimal(from);
         BigDecimal increment = new BigDecimal(by);
 
-        for (int i=0; i<values; ++i) {
+        for (int i = 0; i < values; ++i) {
             results[i] = value.doubleValue();
             value = value.add(increment);
         }
@@ -273,16 +305,52 @@ final public class MathUtil {
         return results;
     }
 
-    /** "Promotes" an int[] into a double array with the same values (or as close as precision allows). */
+    /**
+     * "Promotes" an int[] into a double array with the same values (or as close as precision allows).
+     */
     public static double[] promote(final int[] is) {
         final double[] ds = new double[is.length];
-        for (int i = 0; i < is.length; ++i) ds[i] = is[i];
+        for (int i = 0; i < is.length; ++i) {
+            ds[i] = is[i];
+        }
         return ds;
     }
 
     @Deprecated  // use pNormalizeLogProbability instead (renamed)
     public static double[] logLikelihoodsToProbs(final double[] likelihoods) {
         return pNormalizeLogProbability(likelihoods);
+    }
+
+    /**
+     * Takes a complete set of mutually exclusive logLikelihoods and converts them to probabilities
+     * with no rescaling. Will throw if underflow is detected (if all the likelihoods are less than -300)
+     */
+    public static double[] getProbabilityFromLog(final double[] lLikelihood) {
+
+        final double maxLikelihood = max(lLikelihood);
+        if (maxLikelihood < -300) {
+            throw new PicardException(String.format("Underflow detected, needed to calculate pow(10,x) with x=%f.", maxLikelihood));
+        }
+
+        final double[] tmp = new double[lLikelihood.length];
+        for (int i = 0; i < lLikelihood.length; ++i) {
+            tmp[i] = pow(10, lLikelihood[i]);
+        }
+
+        return tmp;
+    }
+
+    /**
+     * Takes a complete set of mutually exclusive Likelihoods and converts them to logLikelihoods.
+     */
+    public static double[] getLogFromProbability(final double[] likelihood) {
+
+        final double[] tmp = new double[likelihood.length];
+        for (int i = 0; i < likelihood.length; ++i) {
+            tmp[i] = Math.log10(likelihood[i]);
+        }
+
+        return tmp;
     }
 
     /**
@@ -310,20 +378,29 @@ final public class MathUtil {
 
         for (int i = 0; i < lPosterior.length; ++i) {
             tmp[i] /= total;
-            if (tmp[i] > maxP) tmp[i] = maxP;
-            else if (tmp[i] < minP) tmp[i] = minP;
+            if (tmp[i] > maxP) {
+                tmp[i] = maxP;
+            } else if (tmp[i] < minP) {
+                tmp[i] = minP;
+            }
         }
 
         return tmp;
     }
 
-    /** Calculates the ratio of two arrays of the same length. */
+    /**
+     * Calculates the ratio of two arrays of the same length.
+     */
     public static double[] divide(final double[] numerators, final double[] denominators) {
-        if (numerators.length != denominators.length) throw new IllegalArgumentException("Arrays must be of same length.");
+        if (numerators.length != denominators.length) {
+            throw new IllegalArgumentException("Arrays must be of same length.");
+        }
 
         final int len = numerators.length;
         final double[] result = new double[len];
-        for (int i = 0; i < len; ++i) result[i] = numerators[i] / denominators[i];
+        for (int i = 0; i < len; ++i) {
+            result[i] = numerators[i] / denominators[i];
+        }
         return result;
     }
 
@@ -342,44 +419,78 @@ final public class MathUtil {
 
         for (int i = 0; i < pPosterior.length; ++i) {
             tmp[i] = pPosterior[i] / total;
-            if (tmp[i] > maxP) tmp[i] = maxP;
-            else if (tmp[i] < minP) tmp[i] = minP;
+            if (tmp[i] > maxP) {
+                tmp[i] = maxP;
+            } else if (tmp[i] < minP) {
+                tmp[i] = minP;
+            }
         }
 
         return tmp;
     }
 
-    /** Calculates the product of two arrays of the same length. */
+    /**
+     * Calculates the product of two arrays of the same length.
+     */
     public static double[] multiply(final double[] lhs, final double[] rhs) {
-        if (lhs.length != rhs.length) throw new IllegalArgumentException("Arrays must be of same length.");
+        if (lhs.length != rhs.length) {
+            throw new IllegalArgumentException("Arrays must be of same length.");
+        }
 
         final int len = lhs.length;
         final double[] result = new double[len];
-        for (int i = 0; i < len; ++i) result[i] = lhs[i] * rhs[i];
+        for (int i = 0; i < len; ++i) {
+            result[i] = lhs[i] * rhs[i];
+        }
         return result;
     }
 
-    /** calculates the sum of the arrays as a third array. */
+    /**
+     * calculates the sum of the arrays as a third array.
+     */
     public static double[] sum(final double[] lhs, final double[] rhs) {
-        if (lhs.length != rhs.length) throw new IllegalArgumentException("Arrays must be of same length.");
+        if (lhs.length != rhs.length) {
+            throw new IllegalArgumentException("Arrays must be of same length.");
+        }
 
         final int len = lhs.length;
-        final double [] result = new double[len];
-        for (int i = 0; i < len; ++i) result[i] = lhs[i] + rhs[i];
+        final double[] result = new double[len];
+        for (int i = 0; i < len; ++i) {
+            result[i] = lhs[i] + rhs[i];
+        }
         return result;
     }
 
-    /** Returns the sum of the elements in the array. */
+    /**
+     * calculates the sum of an array and a double.
+     */
+    public static double[] sum(final double[] lhs, final double rhs) {
+
+        final int len = lhs.length;
+        final double[] result = new double[len];
+        for (int i = 0; i < len; ++i) {
+            result[i] = lhs[i] + rhs;
+        }
+        return result;
+    }
+
+    /**
+     * Returns the sum of the elements in the array.
+     */
     public static double sum(final double[] arr) {
         double result = 0;
-        for (final double next : arr) result += next;
+        for (final double next : arr) {
+            result += next;
+        }
         return result;
     }
 
-    /** Returns the sum of the elements in the array starting with start and ending before stop. */
+    /**
+     * Returns the sum of the elements in the array starting with start and ending before stop.
+     */
     public static long sum(final long[] arr, final int start, final int stop) {
         long result = 0;
-        for (int i=start; i<stop; ++i) {
+        for (int i = start; i < stop; ++i) {
             result += arr[i];
         }
         return result;
@@ -411,9 +522,9 @@ final public class MathUtil {
         }
     };
 
-
-    /** Calculate the KL divergence from measured to distribution
-     // https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence
+    /**
+     * Calculate the KL divergence from measured to distribution
+     * // https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence
      */
     public static double klDivergance(double[] measured, double[] distribution) {
         assert measured.length == distribution.length;
@@ -426,11 +537,12 @@ final public class MathUtil {
 
     /**
      * permute the input array randomly (using a RandomDataGenerator)
+     *
      * @param array input array
-     * @param rdg a RandomDataGenerator for drawing a permutation from
+     * @param rdg   a RandomDataGenerator for drawing a permutation from
      * @return a newly allocated array with a permuted version of the original data.
      */
-    public static double [] permute(double [] array, RandomDataGenerator rdg){
+    public static double[] permute(double[] array, RandomDataGenerator rdg) {
 
         final int n = array.length;
         final double[] retVal = new double[n];
@@ -441,7 +553,7 @@ final public class MathUtil {
         return retVal;
     }
 
-    /** 
+    /**
      * A collection of common math operations that work with log values. To use it, pass values from log space, the operation will be
      * computed in non-log space, and a value in log space will be returned.
      */
@@ -455,20 +567,26 @@ final public class MathUtil {
 
         private LogMath(final double base) {
             this.base = base;
-            this.log_of_base=Math.log(base);
+            this.log_of_base = Math.log(base);
         }
 
-        /** Returns the decimal representation of the provided log values. */
+        /**
+         * Returns the decimal representation of the provided log values.
+         */
         public double getNonLogValue(final double logValue) {
             return Math.pow(base, logValue);
         }
 
-        /** Returns the log-representation of the provided decimal value. */
+        /**
+         * Returns the log-representation of the provided decimal value.
+         */
         public double getLogValue(final double nonLogValue) {
             return Math.log(nonLogValue) / log_of_base;
         }
 
-        /** Returns the log-representation of the provided decimal array. */
+        /**
+         * Returns the log-representation of the provided decimal array.
+         */
         public double[] getLogValue(final double[] nonLogArray) {
             final double[] logArray = new double[nonLogArray.length];
             for (int i = 0; i < nonLogArray.length; i++) {
@@ -477,12 +595,16 @@ final public class MathUtil {
             return logArray;
         }
 
-        /** Computes the mean of the provided log values. */
+        /**
+         * Computes the mean of the provided log values.
+         */
         public double mean(final double... logValues) {
             return sum(logValues) - getLogValue(logValues.length);
         }
-        
-        /** Computes the sum of the provided log values. */
+
+        /**
+         * Computes the sum of the provided log values.
+         */
         public double sum(final double... logValues) {
             // Avoid overflow via scaling.
             final double scalingFactor = max(logValues);
@@ -492,8 +614,10 @@ final public class MathUtil {
             }
             return getLogValue(simpleAdditionResult) + scalingFactor;
         }
- 
-        /** Computes the sum of the provided log values. */
+
+        /**
+         * Computes the sum of the provided log values.
+         */
         public double product(final double... logValues) {
             return MathUtil.sum(logValues);
         }

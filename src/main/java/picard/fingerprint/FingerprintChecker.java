@@ -382,7 +382,8 @@ public class FingerprintChecker {
                 final int[] pls = genotype.getPL();
                 final int[] newPLs = new int[pls.length];
                 for (int i = 0; i < pls.length; i++) {
-                    newPLs[i] = Math.min(maximalPLDifference, pls[i]);
+                    newPLs[i]=pls[i];
+                    //newPLs[i] = Math.min(maximalPLDifference, pls[i]);
                 }
                 hFp.addToLogLikelihoods(snp, usableSnp.getAlleles(), GenotypeLikelihoods.fromPLs(newPLs).getAsVector());
                 fp.add(hFp);
@@ -868,8 +869,8 @@ public class FingerprintChecker {
     public static MatchResults calculateMatchResults(final Fingerprint observedFp, final Fingerprint expectedFp, final double minPExpected, final double pLoH, final boolean calculateLocusInfo, final boolean calculateTumorAwareLod) {
         final List<LocusResult> locusResults = calculateLocusInfo ? new ArrayList<>() : null;
 
-        double llThisSample = 0;
-        double llOtherSample = 0;
+        double llNoSwapModel = 0;
+        double llSwapModel = 0;
 
         double lodExpectedSampleTumorNormal = 0;
         double lodExpectedSampleNormalTumor = 0;
@@ -879,7 +880,9 @@ public class FingerprintChecker {
         for (final HaplotypeProbabilities probs2 : expectedFp.values()) {
             final HaplotypeBlock haplotypeBlock = probs2.getHaplotype();
             final HaplotypeProbabilities probs1 = observedFp.get(haplotypeBlock);
-            if (probs1 == null) continue;
+            if (probs1 == null) {
+                continue;
+            }
 
             final HaplotypeProbabilityOfNormalGivenTumor prob1AssumingDataFromTumor;
             final HaplotypeProbabilityOfNormalGivenTumor prob2AssumingDataFromTumor;
@@ -917,11 +920,8 @@ public class FingerprintChecker {
                 locusResults.add(lr);
             }
             if (probs1.hasEvidence() && probs2.hasEvidence()) {
-                //TODO: what's the mathematics behind the lminPexpected?
-                llThisSample += Math.max(lminPExpected,
-                        probs1.shiftedLogEvidenceProbabilityGivenOtherEvidence(probs2));
-
-                llOtherSample += probs1.shiftedLogEvidenceProbability();
+                llNoSwapModel += probs1.shiftedLogEvidenceProbabilityGivenOtherEvidence(probs2);
+                llSwapModel += probs1.shiftedLogEvidenceProbability() + probs2.shiftedLogEvidenceProbability();
 
                 if (calculateTumorAwareLod) {
                     lodExpectedSampleTumorNormal += prob1AssumingDataFromTumor.shiftedLogEvidenceProbabilityGivenOtherEvidence(probs2) -
@@ -934,7 +934,7 @@ public class FingerprintChecker {
         }
 
         // TODO: prune the set of LocusResults for things that are too close together?
-        return new MatchResults(expectedFp.getSource(), expectedFp.getSample(), llThisSample, llOtherSample, lodExpectedSampleTumorNormal, lodExpectedSampleNormalTumor, locusResults);
+        return new MatchResults(expectedFp.getSource(), expectedFp.getSample(), llNoSwapModel, llSwapModel, lodExpectedSampleTumorNormal, lodExpectedSampleNormalTumor, locusResults);
     }
 
     /**

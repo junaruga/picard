@@ -3,16 +3,18 @@ package picard.fingerprint;
 import htsjdk.samtools.util.CollectionUtil;
 import htsjdk.samtools.util.QualityUtil;
 import htsjdk.variant.variantcontext.Allele;
+import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import picard.util.MathUtil;
+import picard.util.TestNGUtil;
 
 import java.util.Collections;
 import java.util.List;
 
-import static picard.util.TestNGUtil.assertEqualDoubleArrays;
 import static java.lang.Math.log10;
+import static picard.util.TestNGUtil.assertEqualDoubleArrays;
 
 /**
  * Basic tests for HaplotypeProbabilities and derived classes
@@ -21,18 +23,18 @@ import static java.lang.Math.log10;
  */
 public class HaplotypeProbabilitiesTest {
 
-    static Snp snp1, snp2;
-    static HaplotypeBlock hb1, hb2;
+    private static Snp snp1, snp2;
+    private static HaplotypeBlock hb1, hb2;
 
     @BeforeTest
     public static void initializeHaplotypeBlock() {
-        snp1 = new Snp("SNP1", "test", 1, (byte) 'A', (byte) 'T', 0.25, Collections.<String>emptyList());
-        snp2 = new Snp("SNP2", "test", 2, (byte) 'A', (byte) 'G', 0.5, Collections.<String>emptyList());
+        snp1 = new Snp("SNP1", "test", 1, (byte) 'A', (byte) 'T', 0.25, Collections.emptyList());
+        snp2 = new Snp("SNP2", "test", 2, (byte) 'A', (byte) 'G', 0.25, Collections.emptyList());
 
         hb1 = new HaplotypeBlock(.25);
         hb1.addSnp(snp1);
 
-        hb2 = new HaplotypeBlock(.4);
+        hb2 = new HaplotypeBlock(.25);
         hb2.addSnp(snp1);
         hb2.addSnp(snp2);
     }
@@ -43,58 +45,48 @@ public class HaplotypeProbabilitiesTest {
                 new Object[]{
                         new HaplotypeProbabilitiesFromGenotypeLikelihoods(hb1),
                         Collections.singletonList(snp1),
-                        Collections.singletonList(false),
-                        Collections.singletonList(new double[]{0, -1, -2})},
-
-                new Object[]{
-                        new HaplotypeProbabilitiesFromGenotypeLikelihoods(hb1),
-                        Collections.singletonList(snp1),
-                        Collections.singletonList(true),
                         Collections.singletonList(new double[]{0, -1, -2})},
 
                 new Object[]{
                         new HaplotypeProbabilitiesFromGenotypeLikelihoods(hb2),
+                        Collections.singletonList(snp2),
+                        Collections.singletonList(new double[]{-2, -1, 0})},
+
+                new Object[]{
+                        new HaplotypeProbabilitiesFromGenotypeLikelihoods(hb2),
                         CollectionUtil.makeList(snp1, snp2),
-                        CollectionUtil.makeList(false, false),
                         CollectionUtil.makeList(new double[]{0, -1, -2}, new double[]{0, -1, -2})},
 
                 new Object[]{
                         new HaplotypeProbabilitiesFromGenotypeLikelihoods(hb2),
-                        CollectionUtil.makeList(snp1, snp2),
-                        CollectionUtil.makeList(false, false),
+                        CollectionUtil.makeList(snp2, snp1),
                         CollectionUtil.makeList(new double[]{0, -1, -2}, new double[]{-1, 0, -1})},
 
                 new Object[]{
                         new HaplotypeProbabilitiesFromGenotypeLikelihoods(hb2),
                         CollectionUtil.makeList(snp1, snp2),
-                        CollectionUtil.makeList(false, false),
                         CollectionUtil.makeList(new double[]{0, -1, -2}, new double[]{-2, -1, 0})},
         };
     }
 
     @Test(dataProvider = "dataTestpEvidenceGivenPriorFromGLs")
-    public void testpEvidenceGivenPriorFromGLs(final HaplotypeProbabilitiesFromGenotypeLikelihoods hp, final List<Snp> snps, final List<Boolean> swaps, final List<double[]> GLs) throws Exception {
-
+    public void testpEvidenceGivenPriorFromGLs(final HaplotypeProbabilitiesFromGenotypeLikelihoods hp, final List<Snp> snps, final List<double[]> logLikelihoods) {
+        final int NUMBER_OF_GENOTYPES = 3;
         for (int i = 0; i < snps.size(); ++i) {
-            final Allele a = Allele.create(swaps.get(i) ? snps.get(i).getAllele2() : snps.get(i).getAllele1());
-            final Allele b = Allele.create(swaps.get(i) ? snps.get(i).getAllele1() : snps.get(i).getAllele2());
+            final Allele a = Allele.create(snps.get(i).getAllele1());
+            final Allele b = Allele.create(snps.get(i).getAllele2());
 
-            hp.addToLogLikelihoods(snps.get(i), CollectionUtil.makeList(a, b), GLs.get(i));
+            hp.addToLogLikelihoods(snps.get(i), CollectionUtil.makeList(a, b), logLikelihoods.get(i));
         }
 
-        final double[] logLikelihood = new double[3];
-        for (int genotype = 0; genotype < 3; genotype++) {
-            logLikelihood[genotype] = log10(hp.getHaplotype().getHaplotypeFrequency(genotype));
-            for (int i = 0; i < GLs.size(); i++) {
-                final double[] genotypeLogLikelihoods = GLs.get(i);
-                if (swaps.get(i))
-                    logLikelihood[genotype] += genotypeLogLikelihoods[2 - genotype];
-                else
-                    logLikelihood[genotype] += genotypeLogLikelihoods[genotype];
+        final double[] postLogLikelihood = new double[NUMBER_OF_GENOTYPES];
+        for (int genotype = 0; genotype < NUMBER_OF_GENOTYPES; genotype++) {
+            postLogLikelihood[genotype] = log10(hp.getHaplotype().getHaplotypeFrequency(genotype));
+            for (final double[] genotypeLogLikelihoods : logLikelihoods) {
+                postLogLikelihood[genotype] += genotypeLogLikelihoods[genotype];
             }
-
         }
-        assertEqualDoubleArrays(hp.getPosteriorProbabilities(), MathUtil.pNormalizeLogProbability(logLikelihood), 1e-10);
+        assertEqualDoubleArrays(hp.getPosteriorProbabilities(), MathUtil.pNormalizeLogProbability(postLogLikelihood), 1e-10);
     }
 
     @DataProvider(name = "dataTestHaplotypeProbabilitiesFromSequenceAddToProbs")
@@ -112,7 +104,7 @@ public class HaplotypeProbabilitiesTest {
     }
 
     @Test(dataProvider = "dataTestHaplotypeProbabilitiesFromSequenceAddToProbs")
-    public void testHaplotypeProbabilitiesFromSequenceAddToProbs(final HaplotypeProbabilitiesFromSequence hp, final Snp snp, final byte[] bases, final int qual) throws Exception {
+    public void testHaplotypeProbabilitiesFromSequenceAddToProbs(final HaplotypeProbabilitiesFromSequence hp, final Snp snp, final byte[] bases, final int qual) {
 
         for (final byte base : bases) {
             hp.addToProbs(snp, base, (byte) qual);
@@ -125,10 +117,12 @@ public class HaplotypeProbabilitiesTest {
             logLikelihood[genotype] = log10(hp.getHaplotype().getHaplotypeFrequency(genotype));
             for (final byte a : bases) {
                 final double theta = 0.5 * genotype;
-                if (a == snp.getAllele1())
+                if (a == snp.getAllele1()) {
                     logLikelihood[genotype] += log10((1 - theta) * (1 - pError) + theta * pError);
-                if (a == snp.getAllele2())
+                }
+                if (a == snp.getAllele2()) {
                     logLikelihood[genotype] += log10((1 - theta) * (pError) + theta * (1 - pError));
+                }
             }
         }
         final double[] posterior = MathUtil.pNormalizeLogProbability(logLikelihood);
@@ -152,10 +146,10 @@ public class HaplotypeProbabilitiesTest {
         };
     }
 
-    static final int[] genotypes = {0, 1, 2};
+    private static final int[] genotypes = {0, 1, 2};
 
-    @Test(dataProvider = "dataTestHaplotypeProbabilitiesFromContaminatorSequenceAddToProbs")
-    public void testHaplotypeProbabilitiesFromContaminatorSequenceAddToProbs(final HaplotypeProbabilitiesFromContaminatorSequence hp, final Snp snp, final int nAlt, final int nTotal) throws Exception {
+//    @Test(dataProvider = "dataTestHaplotypeProbabilitiesFromContaminatorSequenceAddToProbs")
+    public void testHaplotypeProbabilitiesFromContaminatorSequenceAddToProbs(final HaplotypeProbabilitiesFromContaminatorSequence hp, final Snp snp, final int nAlt, final int nTotal) {
 
         final byte qual = 7;
         for (int i = 0; i < nAlt; i++) {
@@ -184,5 +178,39 @@ public class HaplotypeProbabilitiesTest {
         final double[] likelihood = MathUtil.pNormalizeVector(unnormalizedLikelihood);
 
         assertEqualDoubleArrays(hp.getLikelihoods(), likelihood, 1e-10);
+    }
+
+    @DataProvider
+    public Object[][] symmetricLODdata() {
+        return new Object[][]{
+                new Object[]{new double[]{0, -.3, -2.7}, new double[]{0, -.3, -2.6}},
+                new Object[]{new double[]{0, -1, -9}, new double[]{-10, -1.5, 0}},
+                new Object[]{new double[]{0, -1, -9}, new double[]{-10, 0, 1.5}},
+        };
+    }
+
+    @Test(dataProvider = "symmetricLODdata")
+    public void testSymmetricLOD(final double[] llikelihoods1, final double[] llikelihoods2) {
+        final HaplotypeBlock haplotypeBlock = new HaplotypeBlock(0.1);
+        final Snp testSnp = new Snp("test", "chrTest", 1, (byte) 'A', (byte) 'C', .1, Collections.emptyList());
+        haplotypeBlock.addSnp(testSnp);
+
+        final HaplotypeProbabilitiesFromGenotypeLikelihoods hp1 = new HaplotypeProbabilitiesFromGenotypeLikelihoods(haplotypeBlock);
+        final HaplotypeProbabilitiesFromGenotypeLikelihoods hp2 = new HaplotypeProbabilitiesFromGenotypeLikelihoods(haplotypeBlock);
+
+        hp1.addToLogLikelihoods(testSnp, CollectionUtil.makeList(Allele.ALT_A, Allele.REF_C), llikelihoods1);
+        hp2.addToLogLikelihoods(testSnp, CollectionUtil.makeList(Allele.ALT_A, Allele.REF_C), llikelihoods2);
+
+        TestNGUtil.assertEqualDoubleArrays(MathUtil.pNormalizeVector(hp1.getPosteriorProbabilities()),
+                MathUtil.pNormalizeVector(MathUtil.multiply(MathUtil.pNormalizeLogProbability(llikelihoods1), haplotypeBlock.getHaplotypeFrequencies())), .00001);
+
+        TestNGUtil.assertEqualDoubleArrays(MathUtil.pNormalizeVector(hp2.getPosteriorProbabilities()),
+                MathUtil.pNormalizeVector(MathUtil.multiply(MathUtil.pNormalizeLogProbability(llikelihoods2), haplotypeBlock.getHaplotypeFrequencies())), .00001);
+
+        final double ll21 = hp1.scaledEvidenceProbabilityUsingGenotypeFrequencies(hp2.getPosteriorLikelihoods());
+        final double ll12 = hp2.scaledEvidenceProbabilityUsingGenotypeFrequencies(hp1.getPosteriorLikelihoods());
+
+        Assert.assertTrue(TestNGUtil.compareDoubleWithAccuracy(ll12, ll21, 0.001), "found : " + ll12 + " and " + ll21);
+
     }
 }

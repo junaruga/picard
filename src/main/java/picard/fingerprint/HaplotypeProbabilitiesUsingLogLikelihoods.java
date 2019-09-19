@@ -29,7 +29,7 @@ import picard.util.MathUtil;
 import static java.lang.Math.log10;
 
 /**
- * Represents the probability of the underlying haplotype using log likelihoods as the basic datum for each of the SNPs. By convention the
+ * Represents the probability of the underlying haplotype using log rawLikelihoods as the basic datum for each of the SNPs. By convention the
  * alleles stored for each SNP are in phase.
  *
  * @author Tim Fennell
@@ -46,8 +46,9 @@ abstract class HaplotypeProbabilitiesUsingLogLikelihoods extends HaplotypeProbab
     // they need to be recalculated if loglikelihoodNeedsUpdating
     private double[] likelihoods = new double[Genotype.values().length];
     private double[] posteriorProbabilities = new double[Genotype.values().length];
-    private double[] shiftedLogPosteriors = new double[Genotype.values().length];
 
+    //normalized (likeihood * prior / normalization_factor)
+    private double[] shiftedLogPosteriors = new double[Genotype.values().length];
 
     public HaplotypeProbabilitiesUsingLogLikelihoods(final HaplotypeBlock haplotypeBlock) {
         super(haplotypeBlock);
@@ -95,13 +96,14 @@ abstract class HaplotypeProbabilitiesUsingLogLikelihoods extends HaplotypeProbab
     /**
      * Returns the posterior probability of the haplotypes given the evidence (uses the internal prior)
      */
-    private double[] getPosteriorProbabilities0() {
+    protected double[] getPosteriorProbabilities0() {
         return MathUtil.pNormalizeLogProbability(getShiftedLogPosterior0());
     }
 
     /**
-     * getter for posteriors
+     * getter for posteriorProbs
      */
+    @Override
     public double[] getPosteriorProbabilities() {
         updateDependentValues();
         return posteriorProbabilities;
@@ -134,22 +136,20 @@ abstract class HaplotypeProbabilitiesUsingLogLikelihoods extends HaplotypeProbab
     }
 
     /**
-     * Converts the loglikelihoods into linear-space.
-     */
-    private double[] getLikelihoods0() {
-        return MathUtil.pNormalizeLogProbability(getLogLikelihoods());
-    }
-
-    /**
-     * getter for likelihoods;
+     * Converts the loglikelihoods into linear-space with normalizing.
      */
     @Override
     public double[] getLikelihoods() {
         updateDependentValues();
         return likelihoods;
     }
+
+    public double[] getLikelihoods0() {
+        return MathUtil.pNormalizeLogProbability(this.loglikelihoods);
+    }
+
     /**
-     * Since this class uses loglikelihoods natively, we override and return the native variable
+     * Since this class uses log-rawLikelihoods natively, we override and return the native variable
      */
     @Override
     public double[] getLogLikelihoods() {
@@ -159,7 +159,10 @@ abstract class HaplotypeProbabilitiesUsingLogLikelihoods extends HaplotypeProbab
     public void setLogLikelihoods(final double[] ll) {
         assert (ll.length == Genotype.values().length);
 
-        System.arraycopy(ll, 0, loglikelihoods, 0, ll.length);
+        double sum = MathUtil.sum(MathUtil.getProbabilityFromLog(ll));
+        // normalize log rawLikelihoods:
+        System.arraycopy(MathUtil.sum(ll,-Math.log10(sum)), 0,loglikelihoods , 0, ll.length);
+
         likelihoodsNeedUpdating = true;
     }
 

@@ -42,12 +42,7 @@ public class HaplotypeProbabilitiesFromGenotype extends HaplotypeProbabilities {
     /** Returns the SNP who's genotype was used to construct the likelihoods. */
     @Override public Snp getRepresentativeSnp() { return snp; }
 
-
-    // TODO: this can't be right in general. At least one needs to divide by the prior to set things straight.
-    // TODO: The only saving grace is that this is normally used for cases where the priors are large and similar to each other.
-
-
-    // simply returns the _likelihoods_ that were passed into the constructor.
+   // simply returns the _likelihoods_ that were passed into the constructor.
     public double[] getLikelihoods() {
         return likelihoods;
     }
