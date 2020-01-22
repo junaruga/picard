@@ -34,7 +34,7 @@ public class HaplotypeProbabilitiesTest {
         hb1 = new HaplotypeBlock(.25);
         hb1.addSnp(snp1);
 
-        hb2 = new HaplotypeBlock(.25);
+        hb2 = new HaplotypeBlock(.5);
         hb2.addSnp(snp1);
         hb2.addSnp(snp2);
     }
