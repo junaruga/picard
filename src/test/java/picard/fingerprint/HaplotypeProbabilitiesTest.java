@@ -27,8 +27,8 @@ public class HaplotypeProbabilitiesTest {
 
     private static Snp snp1, snp2;
     private static HaplotypeBlock hb1, hb2;
-    final int nGenotypes = HaplotypeProbabilities.Genotype.values().length;
-    final int[] genotypes = IntStream.range(0, nGenotypes).toArray();
+    private final int nGenotypes = HaplotypeProbabilities.Genotype.values().length;
+    private final int[] genotypes = IntStream.range(0, nGenotypes).toArray();
 
 
     @BeforeTest
@@ -80,7 +80,7 @@ public class HaplotypeProbabilitiesTest {
     }
 
     @Test(dataProvider = "dataTestpEvidenceGivenPriorFromGLs")
-    public void testpEvidenceGivenPriorFromGLs(final HaplotypeProbabilitiesFromGenotypeLikelihoods hp, final List<Snp> snps, final List<Boolean> swaps, final List<double[]> logLikelihoods) throws Exception {
+    public void testpEvidenceGivenPriorFromGLs(final HaplotypeProbabilitiesFromGenotypeLikelihoods hp, final List<Snp> snps, final List<Boolean> swaps, final List<double[]> logLikelihoods) {
 
         for (int i = 0; i < snps.size(); ++i) {
             final Allele a = Allele.create(swaps.get(i) ? snps.get(i).getAllele2() : snps.get(i).getAllele1());
