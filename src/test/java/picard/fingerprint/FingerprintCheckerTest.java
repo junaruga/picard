@@ -135,7 +135,7 @@ public class FingerprintCheckerTest {
 
     @Test(dataProvider = "checkFingerprintsVcfDataProvider")
     public void testFingerprintVcf(final File vcfFile, final File genotypesFile, final String observedSampleAlias, final String expectedSampleAlias,
-                                   final double llExpectedSample, final double llRandomSample, final double lodExpectedSample) throws IOException {
+                                   final double llExpectedSample, final double llRandomSample, final double lodExpectedSample) {
         final FingerprintChecker fpChecker = new FingerprintChecker(SUBSETTED_HAPLOTYPE_DATABASE_FOR_TESTING);
         final Map<FingerprintIdDetails, Fingerprint> fp1 = fpChecker.fingerprintVcf(vcfFile.toPath());
 
@@ -145,7 +145,7 @@ public class FingerprintCheckerTest {
 
     @Test(dataProvider = "checkFingerprintsVcfDataProvider")
     public void testFingerprintSwapEqual(final File vcfFile, final File genotypesFile, final String observedSampleAlias, final String expectedSampleAlias,
-                                   final double llExpectedSample, final double llRandomSample, final double lodExpectedSample) throws IOException {
+                                   final double llExpectedSample, final double llRandomSample, final double lodExpectedSample) {
         final FingerprintChecker fpChecker = new FingerprintChecker(SUBSETTED_HAPLOTYPE_DATABASE_FOR_TESTING);
         final Map<FingerprintIdDetails, Fingerprint> fp1Map = fpChecker.fingerprintVcf(vcfFile.toPath());
         final Map<FingerprintIdDetails, Fingerprint> fp2Map = fpChecker.fingerprintVcf(genotypesFile.toPath());
