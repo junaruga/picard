@@ -874,8 +874,6 @@ public class FingerprintChecker {
         double lodExpectedSampleTumorNormal = 0;
         double lodExpectedSampleNormalTumor = 0;
 
-        final double lminPExpected = Math.log10(minPExpected);
-
         for (final HaplotypeProbabilities probs2 : expectedFp.values()) {
             final HaplotypeBlock haplotypeBlock = probs2.getHaplotype();
             final HaplotypeProbabilities probs1 = observedFp.get(haplotypeBlock);

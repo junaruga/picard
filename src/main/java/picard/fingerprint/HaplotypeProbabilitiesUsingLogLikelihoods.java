@@ -118,11 +118,10 @@ abstract class HaplotypeProbabilitiesUsingLogLikelihoods extends HaplotypeProbab
      * uses the internal prior as P(m)
      */
     private double[] getShiftedLogPosterior0() {
-        final double[] ll = this.getLogLikelihoods();
         final double[] shiftedLogPosterior = new double [Genotype.values().length];
         final double[] haplotypeFrequencies = getPriorProbablities();
         for (final Genotype g : Genotype.values()){
-            shiftedLogPosterior[g.v] = ll[g.v] + log10(haplotypeFrequencies[g.v]);
+            shiftedLogPosterior[g.v] = this.loglikelihoods[g.v] + log10(haplotypeFrequencies[g.v]);
         }
         return shiftedLogPosterior;
     }
@@ -164,6 +163,7 @@ abstract class HaplotypeProbabilitiesUsingLogLikelihoods extends HaplotypeProbab
         System.arraycopy(MathUtil.sum(ll, -Math.log10(sum)), 0, loglikelihoods, 0, ll.length);
 
         likelihoodsNeedUpdating = true;
+        updateDependentValues();
     }
 
     /**

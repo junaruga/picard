@@ -42,8 +42,8 @@ public class HaplotypeProbabilitiesFromContaminatorSequence extends HaplotypePro
 
     // for each model (contGenotype, mainGenotype) there's a likelihood of the data. These need to be collected separately
     // and only collated once all the data is in.
-    double[][] likelihoodMap = {{1, 1, 1}, {1, 1, 1}, {1, 1, 1}};
-    boolean valuesNeedUpdating = true;
+    private double[][] likelihoodMap = {{1, 1, 1}, {1, 1, 1}, {1, 1, 1}};
+    private boolean valuesNeedUpdating = true;
 
     public HaplotypeProbabilitiesFromContaminatorSequence(final HaplotypeBlock haplotypeBlock, final double contamination) {
         super(haplotypeBlock);
@@ -102,7 +102,6 @@ public class HaplotypeProbabilitiesFromContaminatorSequence extends HaplotypePro
             ll[contGeno.v] = log10(MathUtil.sum(MathUtil.multiply(this.getPriorProbablities(), likelihoodMap[contGeno.v])));
         }
         setLogLikelihoods(ll);
-
         valuesNeedUpdating = false;
     }
 
