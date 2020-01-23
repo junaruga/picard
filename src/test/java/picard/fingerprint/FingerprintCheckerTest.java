@@ -23,6 +23,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static picard.util.TestNGUtil.compareDoubleWithAccuracy;
+
 /**
  * Created by farjoun on 8/27/15.
  */
@@ -98,13 +100,13 @@ public class FingerprintCheckerTest {
     public Object[][] testCheckFingerprintsVcfDataProvider() {
         return new Object[][]{
                 {new File(TEST_DATA_DIR, "NA12891.vcf"), new File(TEST_DATA_DIR, "NA12891.fp.vcf"), "NA12891", "NA12891", -1.048021, -2.053484,  1.005462},
-                {new File(TEST_DATA_DIR, "NA12891.vcf"), new File(TEST_DATA_DIR, "NA12891.g.vcf"),  "NA12891", "NA12891", -1.034969, -2.048616,  1.013647},
+                {new File(TEST_DATA_DIR, "NA12891.vcf"), new File(TEST_DATA_DIR, "NA12891.g.vcf"),  "NA12891", "NA12891", -1.037564, -2.049586,  1.012022},
                 {new File(TEST_DATA_DIR, "NA12892.vcf"), new File(TEST_DATA_DIR, "NA12892.fp.vcf"), "NA12892", "NA12892", -1.105025, -2.166160,  1.061135},
-                {new File(TEST_DATA_DIR, "NA12892.vcf"), new File(TEST_DATA_DIR, "NA12892.g.vcf"),  "NA12892", "NA12892", -1.091976, -2.161961,  1.069985},
+                {new File(TEST_DATA_DIR, "NA12892.vcf"), new File(TEST_DATA_DIR, "NA12892.g.vcf"),  "NA12892", "NA12892", -1.094570, -2.162798,  1.068227},
                 {new File(TEST_DATA_DIR, "NA12891.vcf"), new File(TEST_DATA_DIR, "NA12892.fp.vcf"), "NA12891", "NA12892", -7.024770, -2.109822, -4.914948},
-                {new File(TEST_DATA_DIR, "NA12891.vcf"), new File(TEST_DATA_DIR, "NA12892.g.vcf"),  "NA12891", "NA12892", -7.981971, -2.105623, -5.876347},
+                {new File(TEST_DATA_DIR, "NA12891.vcf"), new File(TEST_DATA_DIR, "NA12892.g.vcf"),  "NA12891", "NA12892", -7.718515, -2.106459, -5.612055},
                 {new File(TEST_DATA_DIR, "NA12892.vcf"), new File(TEST_DATA_DIR, "NA12891.fp.vcf"), "NA12892", "NA12891", -7.024770, -2.109822, -4.914948},
-                {new File(TEST_DATA_DIR, "NA12892.vcf"), new File(TEST_DATA_DIR, "NA12891.g.vcf"),  "NA12892", "NA12891", -7.924964, -2.104955, -5.820009},
+                {new File(TEST_DATA_DIR, "NA12892.vcf"), new File(TEST_DATA_DIR, "NA12891.g.vcf"),  "NA12892", "NA12891", -7.679670, -2.105924, -5.573746},
                 {new File(TEST_DATA_DIR, "emptyNA12892.vcf"), new File(TEST_DATA_DIR, "NA12891.g.vcf"),  "NA12892", "NA12891", 0, 0, 0},
         };
     }
@@ -152,7 +154,7 @@ public class FingerprintCheckerTest {
             for(Fingerprint fp2:fp2Map.values()) {
                 final MatchResults matchResults12 = FingerprintChecker.calculateMatchResults(fp1, fp2);
                 final MatchResults matchResults21 = FingerprintChecker.calculateMatchResults(fp2, fp1);
-                Assert.assertEquals(matchResults12.getLOD(),matchResults21.getLOD());
+                compareDoubleWithAccuracy(matchResults12.getLOD(),matchResults21.getLOD(),1e-10);
             }
         }
     }
