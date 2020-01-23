@@ -28,7 +28,10 @@ import org.apache.commons.math3.random.RandomDataGenerator;
 import picard.PicardException;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 
 import static java.lang.Math.log1p;
 import static java.lang.Math.pow;
@@ -551,6 +554,33 @@ final public class MathUtil {
             retVal[i] = array[randomPermutation[i]];
         }
         return retVal;
+    }
+
+    /**
+     * A small utility function to choose n random elements (un-shuffled) from a list
+     *
+     * @param list A list of elements
+     * @param n    a number of elements requested from list
+     * @return a list of n randomly chosen (but in the original order) elements from list.
+     * If the list has less than n elements it is returned in its entirety.
+     */
+    public static <T> List<T> randomSublist(final List<T> list, final int n) {
+        int availableElements = list.size();
+        if (availableElements <= n) return list;
+
+        int stillNeeded = n;
+        final Random rg = new Random();
+        final List<T> shortList = new ArrayList<>(n);
+        for (final T aList : list) {
+            if (rg.nextDouble() < stillNeeded / (double) availableElements) {
+                shortList.add(aList);
+                stillNeeded--;
+            }
+            if (stillNeeded == 0) break; // fast out if do not need more elements
+            availableElements--;
+        }
+
+        return shortList;
     }
 
     /**

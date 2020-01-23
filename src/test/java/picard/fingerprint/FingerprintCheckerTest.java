@@ -8,6 +8,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import picard.PicardException;
+import picard.util.MathUtil;
 import picard.vcf.VcfTestUtils;
 
 import java.io.File;
@@ -44,18 +45,7 @@ public class FingerprintCheckerTest {
         hb.addSnp(snp);
     }
 
-    @Test
-    public void testRandomSublist() {
 
-        final List<Integer> list = new ArrayList<>();
-        list.add(1);
-        list.add(2);
-        list.add(3);
-
-        Assert.assertEquals(list, FingerprintChecker.randomSublist(list, 3));
-        Assert.assertEquals(list, FingerprintChecker.randomSublist(list, 4));
-        Assert.assertEquals(FingerprintChecker.randomSublist(list, 2).size(), 2);
-    }
 
     @DataProvider(name = "pLoH")
     public Iterator<Object[]> pLohData() {

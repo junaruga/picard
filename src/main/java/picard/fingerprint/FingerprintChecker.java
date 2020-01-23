@@ -47,6 +47,7 @@ import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 import picard.PicardException;
 import picard.util.AlleleSubsettingUtils;
+import picard.util.MathUtil;
 import picard.util.ThreadPoolExecutorWithExceptions;
 
 import java.io.File;
@@ -63,7 +64,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.OptionalInt;
-import java.util.Random;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -197,9 +197,7 @@ public class FingerprintChecker {
             fingerprints = loadFingerprintsFromVariantContexts(reader, specificSample, fingerprintFile);
         }
         //add an entry for each sample which was not fingerprinted
-        reader.getFileHeader().getGenotypeSamples().forEach(sample -> {
-            fingerprints.computeIfAbsent(sample, s -> new Fingerprint(s, fingerprintFile, null));
-        });
+        reader.getFileHeader().getGenotypeSamples().forEach(sample -> fingerprints.computeIfAbsent(sample, s -> new Fingerprint(s, fingerprintFile, null)));
 
         return fingerprints;
     }
@@ -633,7 +631,7 @@ public class FingerprintChecker {
                 final Snp snp = this.haplotypes.getSnp(info.getSequenceName(), info.getPosition());
 
                 // randomly select locusMaxReads elements from the list
-                final List<SamLocusIterator.RecordAndOffset> recordAndOffsetList = randomSublist(info.getRecordAndPositions(), locusMaxReads);
+                final List<SamLocusIterator.RecordAndOffset> recordAndOffsetList = MathUtil.randomSublist(info.getRecordAndOffsets(), locusMaxReads);
 
                 for (final SamLocusIterator.RecordAndOffset rec : recordAndOffsetList) {
                     final SAMReadGroupRecord rg = rec.getRecord().getReadGroup();
@@ -659,33 +657,6 @@ public class FingerprintChecker {
             log.error("Unexpected Error while reading from " + samFile + ". Trying to continue.", e.getMessage(), e.getStackTrace());
         }
         return fingerprintsBySample;
-    }
-
-    /**
-     * A small utility function to choose n random elements (un-shuffled) from a list
-     *
-     * @param list A list of elements
-     * @param n    a number of elements requested from list
-     * @return a list of n randomly chosen (but in the original order) elements from list.
-     * If the list has less than n elements it is returned in its entirety.
-     */
-    protected static <T> List<T> randomSublist(final List<T> list, final int n) {
-        int availableElements = list.size();
-        if (availableElements <= n) return list;
-
-        int stillNeeded = n;
-        final Random rg = new Random();
-        final List<T> shortList = new ArrayList<>(n);
-        for (final T aList : list) {
-            if (rg.nextDouble() < stillNeeded / (double) availableElements) {
-                shortList.add(aList);
-                stillNeeded--;
-            }
-            if (stillNeeded == 0) break; // fast out if do not need more elements
-            availableElements--;
-        }
-
-        return shortList;
     }
 
     /**
