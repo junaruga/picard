@@ -29,7 +29,7 @@ import picard.util.MathUtil;
 import static java.lang.Math.log10;
 
 /**
- * Represents the probability of the underlying haplotype using log rawLikelihoods as the basic datum for each of the SNPs. By convention the
+ * Represents the probability of the underlying haplotype using logLikelihoods as the basic datum for each of the SNPs. By convention the
  * alleles stored for each SNP are in phase.
  *
  * @author Tim Fennell
@@ -161,7 +161,7 @@ abstract class HaplotypeProbabilitiesUsingLogLikelihoods extends HaplotypeProbab
 
         double sum = MathUtil.sum(MathUtil.getProbabilityFromLog(ll));
         // normalize log rawLikelihoods:
-        System.arraycopy(MathUtil.sum(ll,-Math.log10(sum)), 0,loglikelihoods , 0, ll.length);
+        System.arraycopy(MathUtil.sum(ll, -Math.log10(sum)), 0, loglikelihoods, 0, ll.length);
 
         likelihoodsNeedUpdating = true;
     }

@@ -382,8 +382,7 @@ public class FingerprintChecker {
                 final int[] pls = genotype.getPL();
                 final int[] newPLs = new int[pls.length];
                 for (int i = 0; i < pls.length; i++) {
-                    newPLs[i]=pls[i];
-                    //newPLs[i] = Math.min(maximalPLDifference, pls[i]);
+                    newPLs[i] = Math.min(maximalPLDifference, pls[i]);
                 }
                 hFp.addToLogLikelihoods(snp, usableSnp.getAlleles(), GenotypeLikelihoods.fromPLs(newPLs).getAsVector());
                 fp.add(hFp);

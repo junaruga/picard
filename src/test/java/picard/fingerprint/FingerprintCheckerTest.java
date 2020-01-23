@@ -157,8 +157,6 @@ public class FingerprintCheckerTest {
         }
     }
 
-
-
     @Test(expectedExceptions = PicardException.class)
     public void testTerminateOnBadFile() {
         final FingerprintChecker fpChecker = new FingerprintChecker(SUBSETTED_HAPLOTYPE_DATABASE_FOR_TESTING);
@@ -193,7 +191,7 @@ public class FingerprintCheckerTest {
     @Test(dataProvider = "checkFingerprintsSamDataProvider")
     public void testCheckFingerprintsSam(final File samFile1, final File samFile2, final boolean expectedMatch, final boolean silent) throws IOException {
 
-        File metricsFile = File.createTempFile("crosscheck",".crosscheck_metrics");
+        final File metricsFile = File.createTempFile("crosscheck",".crosscheck_metrics");
         metricsFile.deleteOnExit();
 
         final String[] args = {
@@ -258,7 +256,7 @@ public class FingerprintCheckerTest {
 
     @DataProvider(name = "queryableData")
     public Iterator<Object[]> queryableData() throws IOException {
-        List<Object[]> tests = new ArrayList<>();
+        final List<Object[]> tests = new ArrayList<>();
         tests.add(new Object[]{new File(TEST_DATA_DIR, "NA12891.fp.vcf"), false});
         tests.add(new Object[]{new File(TEST_DATA_DIR, "NA12891.vcf"), false});
         tests.add(new Object[]{VcfTestUtils.createTemporaryIndexedVcfFromInput(new File(TEST_DATA_DIR, "NA12891.vcf"), "fingerprintcheckertest.tmp."), true});
