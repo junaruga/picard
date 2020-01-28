@@ -191,7 +191,7 @@ public class InfiniumGTCFile extends InfiniumDataFile {
         try {
             final byte[] curIdentifier = new byte[IDENTIFIER_LENGTH];
             for (int i = 0; i < curIdentifier.length; i++) {
-                curIdentifier[i] = stream.readByte();
+                curIdentifier[i] = parseByte();
             }
 
             final String identifier = new String(curIdentifier);
@@ -199,8 +199,8 @@ public class InfiniumGTCFile extends InfiniumDataFile {
             if (!identifier.equals(GTC_IDENTIFIER)) {
                 throw new PicardException("Invalid identifier '" + identifier + "' for GTC file");
             }
-            setFileVersion(stream.readByte());
-            setNumberOfEntries(Integer.reverseBytes(stream.readInt()));
+            setFileVersion(parseByte());
+            setNumberOfEntries(parseInt());
 
             //parse the tables of contents
             for (InfiniumFileTOC toc : getTableOfContents()) {
@@ -369,10 +369,10 @@ public class InfiniumGTCFile extends InfiniumDataFile {
                 logRRatios = parseFloatArray(toc);
                 break;
             case INTENSITY_X_PERCENTILES:
-                redIntensityPercentiles = new IntensityPercentiles(parseShort(toc), readShort(), readShort());
+                redIntensityPercentiles = new IntensityPercentiles(parseShort(toc), parseShort(), parseShort());
                 break;
             case INTENSITY_Y_PERCENTILES:
-                greenIntensityPercentiles = new IntensityPercentiles(parseShort(toc), readShort(), readShort());
+                greenIntensityPercentiles = new IntensityPercentiles(parseShort(toc), parseShort(), parseShort());
                 break;
             case SENTRIX_ID:
                 sentrixBarcode = parseString(toc);
