@@ -34,7 +34,7 @@ import static picard.util.MathUtil.pNormalizeVector;
  *
  * @author Tim Fennell
  */
-public abstract class HaplotypeProbabilities {
+public abstract class HaplotypeProbabilities implements Cloneable{
 
     private final HaplotypeBlock haplotypeBlock;
 

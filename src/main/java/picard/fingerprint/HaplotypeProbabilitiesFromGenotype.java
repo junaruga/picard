@@ -28,7 +28,7 @@ package picard.fingerprint;
  * Represents a set of HaplotypeProbabilities that were derived from a single SNP
  * genotype at a point in time.
  */
-public class HaplotypeProbabilitiesFromGenotype extends HaplotypeProbabilities {
+public class HaplotypeProbabilitiesFromGenotype extends HaplotypeProbabilities implements Cloneable{
     private final Snp snp;
     private final double[] likelihoods;
 

@@ -38,7 +38,7 @@ import java.util.Map;
  * @author farjoun
  */
 
-public class HaplotypeProbabilityOfNormalGivenTumor extends HaplotypeProbabilities {
+public class HaplotypeProbabilityOfNormalGivenTumor extends HaplotypeProbabilities implements Cloneable{
     static private class TransitionMatrix {
         private final double[][] transitionMatrix;
 

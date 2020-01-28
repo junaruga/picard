@@ -33,7 +33,7 @@ import picard.util.MathUtil;
  * @author Tim Fennell
  * @author Yossi Farjoun
  */
-abstract class HaplotypeProbabilitiesUsingLogLikelihoods extends HaplotypeProbabilities {
+abstract class HaplotypeProbabilitiesUsingLogLikelihoods extends HaplotypeProbabilities implements Cloneable {
 
     // some derived classes might need to incorporate accumulated data before logLikelihood is usable.
     // use the getter to allow these classes to calculate the likelihood from the data.
