@@ -81,7 +81,13 @@ public class Fingerprint extends TreeMap<HaplotypeBlock, HaplotypeProbabilities>
             HaplotypeProbabilities probabilities = get(haplotype);
             final HaplotypeProbabilities otherProbabilities = other.get(haplotype);
             if (probabilities == null) {
-                probabilities = otherProbabilities;
+                try {
+                    // clone() is needed since merge merges "into" and thus we will end up changing
+                    // the original "other" object. Which will lead to data corruption and weird results.
+                    probabilities = (HaplotypeProbabilities) otherProbabilities.clone();
+                } catch (CloneNotSupportedException e) {
+                    throw new PicardException("unable to clone HaplotypeProabability", e);
+                }
                 put(haplotype, probabilities);
             } else if (otherProbabilities != null) {
                 probabilities.merge(otherProbabilities);

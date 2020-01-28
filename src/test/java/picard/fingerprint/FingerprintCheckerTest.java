@@ -11,7 +11,13 @@ import picard.vcf.VcfTestUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -222,6 +228,44 @@ public class FingerprintCheckerTest {
             Assert.assertEquals(reader.isQueryable(), expectedQueryable);
         }
     }
+
+
+    @Test
+    public void testMergeIsSafe() {
+        final Path na12891_r1 = new File(TEST_DATA_DIR, "NA12891.over.fingerprints.r1.sam").toPath();
+        final Path na12891_r2 = new File(TEST_DATA_DIR, "NA12891.over.fingerprints.r2.sam").toPath();
+        final Path na12892_r1 = new File(TEST_DATA_DIR, "NA12892.over.fingerprints.r1.sam").toPath();
+        final Path na12892_r2 = new File(TEST_DATA_DIR, "NA12892.over.fingerprints.r2.sam").toPath();
+
+        final List<Path> listOfFiles = Arrays.asList(na12891_r1, na12891_r2, na12892_r1, na12892_r2);
+
+        final FingerprintChecker checker = new FingerprintChecker(SUBSETTED_HAPLOTYPE_DATABASE_FOR_TESTING);
+
+        final Map<FingerprintIdDetails, Fingerprint> fingerprintIdDetailsFingerprintMap = checker.fingerprintFiles(listOfFiles, 1, 0, TimeUnit.DAYS);
+
+        final Fingerprint combinedFp = new Fingerprint("test", null, null);
+        fingerprintIdDetailsFingerprintMap.values().forEach(combinedFp::merge);
+
+        final Fingerprint combinedFp2 = new Fingerprint("test", null, null);
+        fingerprintIdDetailsFingerprintMap.values().forEach(combinedFp2::merge);
+
+        for (final HaplotypeBlock block : combinedFp.keySet()) {
+            Assert.assertEquals(combinedFp.get(block), combinedFp2.get(block));
+        }
+
+        final Map<FingerprintIdDetails, Fingerprint> fingerprintIdDetailsFingerprintMap1 = Fingerprint.mergeFingerprintsBy(fingerprintIdDetailsFingerprintMap, Fingerprint.getFingerprintIdDetailsStringFunction(CrosscheckMetric.DataType.SAMPLE));
+        final Map<FingerprintIdDetails, Fingerprint> fingerprintIdDetailsFingerprintMap2 = Fingerprint.mergeFingerprintsBy(fingerprintIdDetailsFingerprintMap, Fingerprint.getFingerprintIdDetailsStringFunction(CrosscheckMetric.DataType.SAMPLE));
+
+        for (final FingerprintIdDetails fpd1 : fingerprintIdDetailsFingerprintMap1.keySet()) {
+            final Fingerprint fingerprint1 = fingerprintIdDetailsFingerprintMap1.get(fpd1);
+            final Fingerprint fingerprint2 = fingerprintIdDetailsFingerprintMap2.get(fpd1);
+            for (final HaplotypeBlock block : fingerprint1.keySet()) {
+                Assert.assertEquals(fingerprint1.get(block), fingerprint2.get(block));
+            }
+        }
+    }
+
+
 
     @Test
     public void testWriteFingerprint() throws IOException {

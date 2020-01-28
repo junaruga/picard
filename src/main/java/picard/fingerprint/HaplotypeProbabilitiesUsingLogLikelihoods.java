@@ -26,8 +26,6 @@ package picard.fingerprint;
 
 import picard.util.MathUtil;
 
-import static java.lang.Math.log10;
-
 /**
  * Represents the probability of the underlying haplotype using log likelihoods as the basic datum for each of the SNPs. By convention the
  * alleles stored for each SNP are in phase.
@@ -39,18 +37,33 @@ abstract class HaplotypeProbabilitiesUsingLogLikelihoods extends HaplotypeProbab
 
     // some derived classes might need to incorporate accumulated data before logLikelihood is usable.
     // use the getter to allow these classes to calculate the likelihood from the data.
-    private final double[] loglikelihoods = new double[Genotype.values().length];
+    // not final so that clone works
+    private double[] loglikelihoods = new double[Genotype.values().length];
+
     private boolean likelihoodsNeedUpdating = true;
 
     // stored in order to reduce computation we store these partial results.
     // they need to be recalculated if loglikelihoodNeedsUpdating
+
     private double[] likelihoods = new double[Genotype.values().length];
     private double[] posteriorProbabilities = new double[Genotype.values().length];
-    private double[] shiftedLogPosteriors = new double[Genotype.values().length];
 
+    //normalized (likeihood * prior / normalization_factor)
+    private double[] shiftedLogPosteriors = new double[Genotype.values().length];
 
     public HaplotypeProbabilitiesUsingLogLikelihoods(final HaplotypeBlock haplotypeBlock) {
         super(haplotypeBlock);
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        final HaplotypeProbabilitiesUsingLogLikelihoods c = (HaplotypeProbabilitiesUsingLogLikelihoods)super.clone();
+        c.likelihoods = this.likelihoods.clone();
+        c.loglikelihoods = this.loglikelihoods.clone();
+        c.posteriorProbabilities = this.posteriorProbabilities.clone();
+        c.shiftedLogPosteriors = this.shiftedLogPosteriors.clone();
+
+        return c;
     }
 
     /**
@@ -120,7 +133,7 @@ abstract class HaplotypeProbabilitiesUsingLogLikelihoods extends HaplotypeProbab
         final double[] shiftedLogPosterior = new double [Genotype.values().length];
         final double[] haplotypeFrequencies = getPriorProbablities();
         for (final Genotype g : Genotype.values()){
-            shiftedLogPosterior[g.v] = ll[g.v] + log10(haplotypeFrequencies[g.v]);
+            shiftedLogPosterior[g.v] = ll[g.v] + Math.log10(haplotypeFrequencies[g.v]);
         }
         return shiftedLogPosterior;
     }

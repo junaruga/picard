@@ -25,6 +25,7 @@
 package picard.fingerprint;
 
 import htsjdk.samtools.util.QualityUtil;
+
 import static java.lang.Math.log10;
 
 /**
@@ -33,7 +34,7 @@ import static java.lang.Math.log10;
  *
  * @author Tim Fennell
  */
-public class HaplotypeProbabilitiesFromSequence extends HaplotypeProbabilitiesUsingLogLikelihoods {
+public class HaplotypeProbabilitiesFromSequence extends HaplotypeProbabilitiesUsingLogLikelihoods implements Cloneable {
     protected int obsAllele1, obsAllele2, obsAlleleOther;
 
     public HaplotypeProbabilitiesFromSequence(final HaplotypeBlock haplotypeBlock) {
@@ -85,27 +86,34 @@ public class HaplotypeProbabilitiesFromSequence extends HaplotypeProbabilitiesUs
      *
      * @param other Another haplotype probabilities object to merge in
      */
-	@Override
-	public void merge(final HaplotypeProbabilities other) {
+    @Override
+    public void merge(final HaplotypeProbabilities other) {
         super.merge(other);
 
-		if (!this.getHaplotype().equals(other.getHaplotype())) {
-			throw new IllegalArgumentException("Mismatched haplotypes in call to HaplotypeProbabilities.merge(): " +
-					getHaplotype() + ", " + other.getHaplotype());
-		}
+        if (!this.getHaplotype().equals(other.getHaplotype())) {
+            throw new IllegalArgumentException("Mismatched haplotypes in call to HaplotypeProbabilities.merge(): " +
+                    getHaplotype() + ", " + other.getHaplotype());
+        }
 
-		if (! (other instanceof HaplotypeProbabilitiesFromSequence)) {
-			throw new IllegalArgumentException("Can only merge() HaplotypeProbabilities of same class: Tried to merge a " +
-                    this.getClass().getName() + " with a " + other.getClass().getName() +"." );
-		}
+        if (!(other instanceof HaplotypeProbabilitiesFromSequence)) {
+            throw new IllegalArgumentException("Can only merge() HaplotypeProbabilities of same class: Tried to merge a " +
+                    this.getClass().getName() + " with a " + other.getClass().getName() + ".");
+        }
 
-		final HaplotypeProbabilitiesFromSequence o = (HaplotypeProbabilitiesFromSequence) other;
-        this.obsAllele1     += o.obsAllele1;
-        this.obsAllele2     += o.obsAllele2;
+        final HaplotypeProbabilitiesFromSequence o = (HaplotypeProbabilitiesFromSequence) other;
+        this.obsAllele1 += o.obsAllele1;
+        this.obsAllele2 += o.obsAllele2;
         this.obsAlleleOther += o.obsAlleleOther;
-	}
+    }
 
-    /** Returns the number of bases/reads that support the first allele. */
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
+    /**
+     * Returns the number of bases/reads that support the first allele.
+     */
     @Override public int getObsAllele1() {
         return obsAllele1;
     }
@@ -122,5 +130,34 @@ public class HaplotypeProbabilitiesFromSequence extends HaplotypeProbabilitiesUs
     /* Returns the faction of base observations that were presented that were from an allele other than the two expected ones. */
     public double getFractionUnexpectedAlleleObs() {
         return obsAlleleOther / (double) (getTotalObs());
+    }
+
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        final HaplotypeProbabilitiesFromSequence that = (HaplotypeProbabilitiesFromSequence) o;
+
+        if (obsAllele1 != that.obsAllele1) {
+            return false;
+        }
+        if (obsAllele2 != that.obsAllele2) {
+            return false;
+        }
+        return obsAlleleOther == that.obsAlleleOther;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = obsAllele1;
+        result = 31 * result + obsAllele2;
+        result = 31 * result + obsAlleleOther;
+        return result;
     }
 }

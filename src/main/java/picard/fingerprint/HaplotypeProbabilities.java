@@ -255,6 +255,11 @@ public abstract class HaplotypeProbabilities {
         return log10(biggest) - log10(secondBiggest);
     }
 
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
     /**
      * Log10(P(evidence| haplotype)) for the 3 different possible haplotypes
      * {aa, ab, bb}

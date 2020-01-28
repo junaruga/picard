@@ -32,6 +32,13 @@ public class HaplotypeProbabilitiesFromGenotype extends HaplotypeProbabilities {
     private final Snp snp;
     private final double[] likelihoods;
 
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        HaplotypeProbabilitiesFromGenotype c = (HaplotypeProbabilitiesFromGenotype) super.clone();
+        System.arraycopy(likelihoods,0,c.likelihoods,0,likelihoods.length);
+        return c;
+    }
+
     public HaplotypeProbabilitiesFromGenotype(final Snp snp, final HaplotypeBlock haplotypeBlock,
                                               final double AA, final double Aa, final double aa) {
         super(haplotypeBlock);
