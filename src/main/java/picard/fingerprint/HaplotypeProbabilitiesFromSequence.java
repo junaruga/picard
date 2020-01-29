@@ -26,19 +26,28 @@ package picard.fingerprint;
 
 import htsjdk.samtools.util.QualityUtil;
 
-import static java.lang.Math.log10;
-
 /**
  * Represents the probability of the underlying haplotype given the data. By convention the
  * alleles stored for each SNP are in phase.
  *
  * @author Tim Fennell
  */
-public class HaplotypeProbabilitiesFromSequence extends HaplotypeProbabilitiesUsingLogLikelihoods implements Cloneable {
+public class HaplotypeProbabilitiesFromSequence extends HaplotypeProbabilitiesUsingLogLikelihoods {
     protected int obsAllele1, obsAllele2, obsAlleleOther;
+
+    HaplotypeProbabilitiesFromSequence(final HaplotypeBlock haplotypeBlock, int ob1, int ob2, int obOther) {
+        this(haplotypeBlock);
+        obsAllele1 = ob1;
+        obsAllele2 = ob2;
+        obsAlleleOther = obOther;
+    }
 
     public HaplotypeProbabilitiesFromSequence(final HaplotypeBlock haplotypeBlock) {
         super(haplotypeBlock);
+    }
+
+    public HaplotypeProbabilitiesFromSequence(final HaplotypeProbabilitiesFromSequence other) {
+        this(other.getHaplotype() , other.obsAllele1,other.obsAllele2,other.obsAlleleOther);
     }
 
     @Override
@@ -63,14 +72,14 @@ public class HaplotypeProbabilitiesFromSequence extends HaplotypeProbabilitiesUs
             obsAllele1++;
             for (final Genotype g:Genotype.values()){
                 final double pAlt = g.v / 2d;
-                ll[g.v] += log10((1d - pAlt) * (1d - pError) + pAlt * pError);
+                ll[g.v] += Math.log10((1d - pAlt) * (1d - pError) + pAlt * pError);
             }
 
         } else if (base == snp.getAllele2()) {
             obsAllele2++;
             for (final Genotype g:Genotype.values()){
                 final double pAlt = 1 - g.v / 2d;
-                ll[g.v] += log10((1d - pAlt) * (1d - pError) + pAlt * pError);
+                ll[g.v] += Math.log10((1d - pAlt) * (1d - pError) + pAlt * pError);
             }
         } else {
             obsAlleleOther++;
@@ -85,9 +94,10 @@ public class HaplotypeProbabilitiesFromSequence extends HaplotypeProbabilitiesUs
      * read group, e.g. the sample or individual.
      *
      * @param other Another haplotype probabilities object to merge in
+     * @return
      */
     @Override
-    public void merge(final HaplotypeProbabilities other) {
+    public HaplotypeProbabilities merge(final HaplotypeProbabilities other) {
         super.merge(other);
 
         if (!this.getHaplotype().equals(other.getHaplotype())) {
@@ -104,11 +114,13 @@ public class HaplotypeProbabilitiesFromSequence extends HaplotypeProbabilitiesUs
         this.obsAllele1 += o.obsAllele1;
         this.obsAllele2 += o.obsAllele2;
         this.obsAlleleOther += o.obsAlleleOther;
+
+        return this;
     }
 
     @Override
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
+    public HaplotypeProbabilities deepCopy() {
+        return new HaplotypeProbabilitiesFromSequence(this);
     }
 
     /**
@@ -130,34 +142,5 @@ public class HaplotypeProbabilitiesFromSequence extends HaplotypeProbabilitiesUs
     /* Returns the faction of base observations that were presented that were from an allele other than the two expected ones. */
     public double getFractionUnexpectedAlleleObs() {
         return obsAlleleOther / (double) (getTotalObs());
-    }
-
-
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        final HaplotypeProbabilitiesFromSequence that = (HaplotypeProbabilitiesFromSequence) o;
-
-        if (obsAllele1 != that.obsAllele1) {
-            return false;
-        }
-        if (obsAllele2 != that.obsAllele2) {
-            return false;
-        }
-        return obsAlleleOther == that.obsAlleleOther;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = obsAllele1;
-        result = 31 * result + obsAllele2;
-        result = 31 * result + obsAlleleOther;
-        return result;
     }
 }

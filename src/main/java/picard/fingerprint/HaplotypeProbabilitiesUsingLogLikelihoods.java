@@ -25,6 +25,7 @@
 package picard.fingerprint;
 
 import picard.util.MathUtil;
+import java.util.Arrays;
 
 /**
  * Represents the probability of the underlying haplotype using log likelihoods as the basic datum for each of the SNPs. By convention the
@@ -33,37 +34,34 @@ import picard.util.MathUtil;
  * @author Tim Fennell
  * @author Yossi Farjoun
  */
-abstract class HaplotypeProbabilitiesUsingLogLikelihoods extends HaplotypeProbabilities implements Cloneable {
+abstract class HaplotypeProbabilitiesUsingLogLikelihoods extends HaplotypeProbabilities {
 
     // some derived classes might need to incorporate accumulated data before logLikelihood is usable.
     // use the getter to allow these classes to calculate the likelihood from the data.
-    // not final so that clone works
-    private double[] loglikelihoods = new double[Genotype.values().length];
+    final private double[] loglikelihoods = new double[nGeno];
 
     private boolean likelihoodsNeedUpdating = true;
 
     // stored in order to reduce computation we store these partial results.
     // they need to be recalculated if loglikelihoodNeedsUpdating
 
-    private double[] likelihoods = new double[Genotype.values().length];
-    private double[] posteriorProbabilities = new double[Genotype.values().length];
+    final private double[] likelihoods = new double[nGeno];
+    final private double[] posteriorProbabilities = new double[nGeno];
 
     //normalized (likeihood * prior / normalization_factor)
-    private double[] shiftedLogPosteriors = new double[Genotype.values().length];
+    final private double[] shiftedLogPosteriors = new double[nGeno];
 
     public HaplotypeProbabilitiesUsingLogLikelihoods(final HaplotypeBlock haplotypeBlock) {
         super(haplotypeBlock);
     }
 
-    @Override
-    public Object clone() throws CloneNotSupportedException {
-        final HaplotypeProbabilitiesUsingLogLikelihoods c = (HaplotypeProbabilitiesUsingLogLikelihoods)super.clone();
-        c.likelihoods = this.likelihoods.clone();
-        c.loglikelihoods = this.loglikelihoods.clone();
-        c.posteriorProbabilities = this.posteriorProbabilities.clone();
-        c.shiftedLogPosteriors = this.shiftedLogPosteriors.clone();
-
-        return c;
+    public HaplotypeProbabilitiesUsingLogLikelihoods(final HaplotypeProbabilitiesUsingLogLikelihoods other) {
+        super(other.getHaplotype());
+        System.arraycopy(other.loglikelihoods, 0, loglikelihoods, 0, nGeno);
+        System.arraycopy(other.likelihoods, 0, likelihoods, 0, nGeno);
+        System.arraycopy(other.posteriorProbabilities, 0, posteriorProbabilities, 0, nGeno);
+        System.arraycopy(other.shiftedLogPosteriors, 0, shiftedLogPosteriors, 0, nGeno);
+        likelihoodsNeedUpdating = other.likelihoodsNeedUpdating;
     }
 
     /**
@@ -76,10 +74,7 @@ abstract class HaplotypeProbabilitiesUsingLogLikelihoods extends HaplotypeProbab
 
     @Override
     public boolean hasEvidence() {
-        final double[] ll = this.getLogLikelihoods();
-        return ll[Genotype.HOM_ALLELE1.v] != 0 ||
-                ll[Genotype.HET_ALLELE12.v] != 0 ||
-                ll[Genotype.HOM_ALLELE2.v] != 0;
+        return Arrays.stream(getLogLikelihoods()).anyMatch(d -> d != 0);
     }
 
     /**
@@ -88,21 +83,24 @@ abstract class HaplotypeProbabilitiesUsingLogLikelihoods extends HaplotypeProbab
      * read group, e.g. the sample or individual.
      *
      * @param other Another haplotype probabilities object to merge in (must of the the same class and for the same HaplotypeBlock)
+     * @return
      */
     @Override
-    public void merge(final HaplotypeProbabilities other) {
+    public HaplotypeProbabilities merge(final HaplotypeProbabilities other) {
         if (!this.getHaplotype().equals(other.getHaplotype())) {
             throw new IllegalArgumentException("Mismatched haplotypes in call to HaplotypeProbabilities.merge(): " +
                     getHaplotype() + ", " + other.getHaplotype());
         }
 
         if (!(other instanceof HaplotypeProbabilitiesUsingLogLikelihoods)) {
-            throw new IllegalArgumentException("Can only merge HaplotypeProbabilities of same class.");
+            throw new IllegalArgumentException(String.format("Can only merge HaplotypeProbabilities of same class. Found %s and %s",
+                    this.getClass().toString(), other.getClass().toString()));
         }
 
         final HaplotypeProbabilitiesUsingLogLikelihoods o = (HaplotypeProbabilitiesUsingLogLikelihoods) other;
 
         setLogLikelihoods(MathUtil.sum(getLogLikelihoods(), o.getLogLikelihoods()));
+        return this;
     }
 
     /**
@@ -130,9 +128,9 @@ abstract class HaplotypeProbabilitiesUsingLogLikelihoods extends HaplotypeProbab
      */
     private double[] getShiftedLogPosterior0() {
         final double[] ll = this.getLogLikelihoods();
-        final double[] shiftedLogPosterior = new double [Genotype.values().length];
+        final double[] shiftedLogPosterior = new double[nGeno];
         final double[] haplotypeFrequencies = getPriorProbablities();
-        for (final Genotype g : Genotype.values()){
+        for (final Genotype g : Genotype.values()) {
             shiftedLogPosterior[g.v] = ll[g.v] + Math.log10(haplotypeFrequencies[g.v]);
         }
         return shiftedLogPosterior;
@@ -170,9 +168,9 @@ abstract class HaplotypeProbabilitiesUsingLogLikelihoods extends HaplotypeProbab
     }
 
     public void setLogLikelihoods(final double[] ll) {
-        assert (ll.length == Genotype.values().length);
+        assert (ll.length == nGeno);
 
-        System.arraycopy(ll, 0, loglikelihoods, 0, ll.length);
+        System.arraycopy(ll, 0, loglikelihoods, 0, nGeno);
         likelihoodsNeedUpdating = true;
     }
 
@@ -200,10 +198,11 @@ abstract class HaplotypeProbabilitiesUsingLogLikelihoods extends HaplotypeProbab
     }
 
     private void updateDependentValues() {
-        if (likelihoodsNeedUpdating){
-            likelihoods = getLikelihoods0();
-            posteriorProbabilities = getPosteriorProbabilities0();
-            shiftedLogPosteriors = getShiftedLogPosterior0();
+        if (likelihoodsNeedUpdating) {
+            System.arraycopy(getLikelihoods0(), 0, likelihoods, 0, nGeno);
+            System.arraycopy(getPosteriorProbabilities0(), 0, posteriorProbabilities, 0, nGeno);
+            System.arraycopy(getShiftedLogPosterior0(), 0, shiftedLogPosteriors, 0, nGeno);
+
             likelihoodsNeedUpdating = false;
         }
     }

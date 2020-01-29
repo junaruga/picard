@@ -24,9 +24,7 @@
 
 package picard.fingerprint;
 
-import static java.lang.Math.log10;
-import static picard.util.MathUtil.multiply;
-import static picard.util.MathUtil.pNormalizeVector;
+import picard.util.MathUtil;
 
 /**
  * Abstract class for storing and calculating various likelihoods and probabilities
@@ -34,7 +32,7 @@ import static picard.util.MathUtil.pNormalizeVector;
  *
  * @author Tim Fennell
  */
-public abstract class HaplotypeProbabilities implements Cloneable{
+public abstract class HaplotypeProbabilities {
 
     private final HaplotypeBlock haplotypeBlock;
 
@@ -63,7 +61,7 @@ public abstract class HaplotypeProbabilities implements Cloneable{
      * Returns the posterior probabilities using the population frequency as a prior.
      */
     public double[] getPosteriorProbabilities() {
-        return pNormalizeVector(multiply(getLikelihoods(), getPriorProbablities()));
+        return MathUtil.pNormalizeVector(MathUtil.multiply(getLikelihoods(), getPriorProbablities()));
     }
 
     /**
@@ -75,9 +73,9 @@ public abstract class HaplotypeProbabilities implements Cloneable{
 
     public double[] getLogLikelihoods() {
         final double[] likelihoods = getLikelihoods();
-        final double[] lLikelihoods = new double[likelihoods.length];
-        for (int i = 0; i < likelihoods.length; ++i) {
-            lLikelihoods[i] = Math.log10(likelihoods[i]);
+        final double[] lLikelihoods = new double[nGeno];
+        for (final Genotype g : Genotype.values()){
+            lLikelihoods[g.v] = Math.log10(likelihoods[g.v]);
         }
         return lLikelihoods;
     }
@@ -131,7 +129,7 @@ public abstract class HaplotypeProbabilities implements Cloneable{
     /**
      * Merges in the likelihood information from the supplied haplotype probabilities object.
      */
-    public abstract void merge(final HaplotypeProbabilities other);
+    public abstract HaplotypeProbabilities merge(final HaplotypeProbabilities other);
 
     /**
      * Returns the index of the highest probability which can then be used to look up
@@ -190,17 +188,19 @@ public abstract class HaplotypeProbabilities implements Cloneable{
 
     public double scaledEvidenceProbabilityUsingGenotypeFrequencies(final double[] genotypeFrequencies) {
         final double[] likelihoods = getLikelihoods();
-        assert (genotypeFrequencies.length == likelihoods.length);
+        assert (genotypeFrequencies.length == nGeno);
+        assert (likelihoods.length == nGeno);
+
 
         double result = 0;
-        for (int i = 0; i < likelihoods.length; ++i) {
-            result += likelihoods[i] * genotypeFrequencies[i];
+        for (Genotype g: Genotype.values()){
+            result += likelihoods[g.v] * genotypeFrequencies[g.v];
         }
         return result;
     }
 
     public double shiftedLogEvidenceProbabilityUsingGenotypeFrequencies(final double[] genotypeFrequencies) {
-        return log10(scaledEvidenceProbabilityUsingGenotypeFrequencies(genotypeFrequencies));
+        return Math.log10(scaledEvidenceProbabilityUsingGenotypeFrequencies(genotypeFrequencies));
     }
 
     /**
@@ -252,13 +252,10 @@ public abstract class HaplotypeProbabilities implements Cloneable{
                 secondBiggest = prob;
             }
         }
-        return log10(biggest) - log10(secondBiggest);
+        return Math.log10(biggest) - Math.log10(secondBiggest);
     }
 
-    @Override
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
-    }
+    abstract public HaplotypeProbabilities deepCopy();
 
     /**
      * Log10(P(evidence| haplotype)) for the 3 different possible haplotypes
@@ -277,4 +274,5 @@ public abstract class HaplotypeProbabilities implements Cloneable{
             this.v = v;
         }
     }
+    static final int nGeno = Genotype.values().length;
 }

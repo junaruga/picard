@@ -41,6 +41,10 @@ public class HaplotypeProbabilitiesFromGenotypeLikelihoods extends HaplotypeProb
         super(haplotypeBlock);
     }
 
+    public HaplotypeProbabilitiesFromGenotypeLikelihoods(final HaplotypeProbabilitiesFromGenotypeLikelihoods other) {
+        super(other);
+    }
+
     /**
      * Adds a base observation with the observed quality to the evidence for this haplotype
      * based on the fact that the SNP is part of the haplotype.
@@ -54,11 +58,11 @@ public class HaplotypeProbabilitiesFromGenotypeLikelihoods extends HaplotypeProb
         assertSnpPartOfHaplotype(snp);
 
         // only allow biallelic snps
-        assert (logGenotypeLikelihoods.length == Genotype.values().length);
+        assert (logGenotypeLikelihoods.length == nGeno);
         assert (alleles.size() == 2);
 
         //make sure that alleles are comparable to SNPs
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < alleles.size(); i++) {
             assert (alleles.get(i).getBases().length == 1);
         }
 
@@ -89,7 +93,7 @@ public class HaplotypeProbabilitiesFromGenotypeLikelihoods extends HaplotypeProb
     }
 
     @Override
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
+    public HaplotypeProbabilities deepCopy() {
+        return new HaplotypeProbabilitiesFromGenotypeLikelihoods(this);
     }
 }

@@ -24,19 +24,25 @@
 
 package picard.fingerprint;
 
+import java.util.Arrays;
+
 /**
  * Represents a set of HaplotypeProbabilities that were derived from a single SNP
  * genotype at a point in time.
  */
-public class HaplotypeProbabilitiesFromGenotype extends HaplotypeProbabilities implements Cloneable{
+public class HaplotypeProbabilitiesFromGenotype extends HaplotypeProbabilities {
     private final Snp snp;
-    private final double[] likelihoods;
+    private double[] likelihoods;
 
     @Override
-    public Object clone() throws CloneNotSupportedException {
-        HaplotypeProbabilitiesFromGenotype c = (HaplotypeProbabilitiesFromGenotype) super.clone();
-        System.arraycopy(likelihoods,0,c.likelihoods,0,likelihoods.length);
-        return c;
+    public HaplotypeProbabilities deepCopy()  {
+        return new HaplotypeProbabilitiesFromGenotype(this);
+    }
+
+    public HaplotypeProbabilitiesFromGenotype(final HaplotypeProbabilitiesFromGenotype other){
+        super(other.getHaplotype());
+        snp = other.snp;
+        likelihoods = Arrays.copyOf(other.likelihoods,other.likelihoods.length);
     }
 
     public HaplotypeProbabilitiesFromGenotype(final Snp snp, final HaplotypeBlock haplotypeBlock,
@@ -60,7 +66,7 @@ public class HaplotypeProbabilitiesFromGenotype extends HaplotypeProbabilities i
     }
 
     @Override
-    public void merge(final HaplotypeProbabilities other) {
+    public HaplotypeProbabilities merge(final HaplotypeProbabilities other) {
         if (!this.getHaplotype().equals(other.getHaplotype())) {
             throw new IllegalArgumentException("Mismatched haplotypes in call to HaplotypeProbabilities.merge(): " +
                     getHaplotype() + ", " + other.getHaplotype());
@@ -69,9 +75,9 @@ public class HaplotypeProbabilitiesFromGenotype extends HaplotypeProbabilities i
         if (!(other instanceof HaplotypeProbabilitiesFromGenotype)) {
             throw new IllegalArgumentException("Can only merge HaplotypeProbabilities of same class.");
         }
-
-        this.likelihoods[0] = this.likelihoods[0] * other.getLikelihoods()[0];
-        this.likelihoods[1] = this.likelihoods[1] * other.getLikelihoods()[1];
-        this.likelihoods[2] = this.likelihoods[2] * other.getLikelihoods()[2];
+        for (Genotype g : Genotype.values()) {
+            this.likelihoods[g.v] = this.likelihoods[g.v] * other.getLikelihoods()[g.v];
+        }
+        return this;
     }
 }

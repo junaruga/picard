@@ -30,7 +30,7 @@ import java.util.Map;
 
 /**
  * A wrapper class for any HaplotypeProbabilities instance that will assume that the given evidence is that of a tumor sample and
- * provide an hp for the normal sample that tumor came from. This models possible loss of hetrozygosity where het genotypes
+ * provide an hp for the normal sample that tumor came from. This models possible loss of heterozygosity where het genotypes
  * turn into a homozygous genotype with probability pLoH.
  * <p>
  * The shortcoming of this model is that we assume that the events are all independent, but this way they are allowed.
@@ -38,11 +38,18 @@ import java.util.Map;
  * @author farjoun
  */
 
-public class HaplotypeProbabilityOfNormalGivenTumor extends HaplotypeProbabilities implements Cloneable{
+public class HaplotypeProbabilityOfNormalGivenTumor extends HaplotypeProbabilities{
+    public HaplotypeProbabilityOfNormalGivenTumor(final HaplotypeProbabilityOfNormalGivenTumor other) {
+        super(other.getHaplotype());
+        transitionMatrix = other.transitionMatrix;
+
+        hpOfTumor = other.hpOfTumor.deepCopy();
+    }
+
     static private class TransitionMatrix {
         private final double[][] transitionMatrix;
 
-        public TransitionMatrix(double pLoH) {
+        TransitionMatrix(double pLoH) {
             transitionMatrix = new double[][]{
                     //This is P(g_t|g_n)
                     //tumor genotype are the columns.
@@ -51,12 +58,13 @@ public class HaplotypeProbabilityOfNormalGivenTumor extends HaplotypeProbabiliti
                     {0, 0, 1}}; //normal is hom_var => tumor must be the same
         }
 
-        public double[][] getTransitionMatrix() {
+        double[][] getTransitionMatrix() {
             return transitionMatrix;
         }
     }
 
     private final HaplotypeProbabilities hpOfTumor;
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     static private Map<Double, TransitionMatrix> transitionMatrixMap = new CollectionUtil.DefaultingMap<>(TransitionMatrix::new, true);
 
     final private double[][] transitionMatrix;
@@ -96,8 +104,23 @@ public class HaplotypeProbabilityOfNormalGivenTumor extends HaplotypeProbabiliti
     }
 
     @Override
-    public void merge(final HaplotypeProbabilities ignored) {
-        throw new IllegalArgumentException("Cannot merge HaplotypeProbabilityOfNormalGivenTumor. Merge the underlying object and create a new wrapper.");
+    public HaplotypeProbabilities merge(final HaplotypeProbabilities other) {
+        if (!this.getHaplotype().equals(other.getHaplotype())) {
+            throw new IllegalArgumentException("Mismatched haplotypes in call to HaplotypeProbabilities.merge(): " +
+                    getHaplotype() + ", " + other.getHaplotype());
+        }
+
+        if (!(other instanceof HaplotypeProbabilityOfNormalGivenTumor)) {
+            throw new IllegalArgumentException("Can only merge HaplotypeProbabilities of same class.");
+        }
+
+        this.hpOfTumor.merge(((HaplotypeProbabilityOfNormalGivenTumor) other).hpOfTumor);
+        return this;
+    }
+
+    @Override
+    public HaplotypeProbabilities deepCopy() {
+        return new HaplotypeProbabilityOfNormalGivenTumor(this);
     }
 
     @Override
