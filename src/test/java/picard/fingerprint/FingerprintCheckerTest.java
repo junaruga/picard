@@ -229,9 +229,25 @@ public class FingerprintCheckerTest {
         }
     }
 
-
     @DataProvider()
     Object[][] mergeIsDafeProvider() {
+        final HaplotypeProbabilitiesFromSequence hp1 = new HaplotypeProbabilitiesFromSequence(hb);
+        final HaplotypeProbabilitiesFromSequence hp2 = new HaplotypeProbabilitiesFromSequence(hb);
+
+        addObservation(hp1, hb, 5, hb.getFirstSnp().getAllele1());
+        addObservation(hp1, hb, 1, (byte) (hb.getFirstSnp().getAllele1() + 1));
+        addObservation(hp2, hb, 3, hb.getFirstSnp().getAllele1());
+        addObservation(hp2, hb, 2, hb.getFirstSnp().getAllele2());
+
+        final HaplotypeProbabilitiesFromContaminatorSequence hpcs1 = new HaplotypeProbabilitiesFromContaminatorSequence(hb, .1);
+        final HaplotypeProbabilitiesFromContaminatorSequence hpcs2 = new HaplotypeProbabilitiesFromContaminatorSequence(hb, .1);
+
+        addObservation(hpcs1, hb, 5, hb.getFirstSnp().getAllele1());
+        addObservation(hpcs1, hb, 1, (byte)(hb.getFirstSnp().getAllele1()+1));
+        addObservation(hpcs2, hb, 3, hb.getFirstSnp().getAllele1());
+        addObservation(hpcs2, hb, 1, hb.getFirstSnp().getAllele1());
+
+
         return new Object[][]{
                 new Object[]{new HaplotypeProbabilitiesFromGenotype(snp, hb, 5D, 0D, 10D), new HaplotypeProbabilitiesFromGenotype(snp, hb, 0D, 10D, 100D)},
                 new Object[]{
@@ -239,9 +255,15 @@ public class FingerprintCheckerTest {
                                 new HaplotypeProbabilitiesFromGenotype(snp, hb, 5D, 0D, 10D), .05),
                         new HaplotypeProbabilityOfNormalGivenTumor(
                                 new HaplotypeProbabilitiesFromGenotype(snp, hb, 0D, 10D, 100D), 0.05)},
-                new Object[]{new HaplotypeProbabilitiesFromSequence(hb, 5, 0, 1), new HaplotypeProbabilitiesFromSequence(hb, 3, 2, 1)},
-                new Object[]{new HaplotypeProbabilitiesFromContaminatorSequence(hb, .1, 5, 0, 1), new HaplotypeProbabilitiesFromContaminatorSequence(hb, .1, 5, 1, 0)},
+                new Object[]{hp1,hp2},
+                new Object[]{hpcs1,hpcs2},
         };
+    }
+
+    private static void addObservation(final HaplotypeProbabilitiesFromSequence haplotypeProb, final HaplotypeBlock haplotypeBlock, final int count, final byte allele) {
+        for (int i = 0; i < count; i++) {
+            haplotypeProb.addToProbs(haplotypeBlock.getFirstSnp(), allele, (byte) 30);
+        }
     }
 
     @Test(dataProvider = "mergeIsDafeProvider")
@@ -269,6 +291,7 @@ public class FingerprintCheckerTest {
         fpA.merge(fp1);
         fpB.merge(fp1);
 
+        Assert.assertNotEquals(fpA.keySet().size(), 0);
         for(HaplotypeBlock hb:fpA.keySet()){
             Assert.assertEquals(fpA.get(hb).getLikelihoods(),fpB.get(hb).getLikelihoods());
         }
@@ -277,12 +300,14 @@ public class FingerprintCheckerTest {
         fpB.merge(fp2);
         fpB.merge(fp2);
 
+        Assert.assertNotEquals(fpA.keySet().size(), 0);
         for(HaplotypeBlock hb:fpA.keySet()){
             Assert.assertNotEquals(fpA.get(hb), fpB.get(hb));
         }
 
         fpA.merge(fp2);
 
+        Assert.assertNotEquals(fpA.keySet().size(), 0);
         for(HaplotypeBlock hb:fpA.keySet()){
             Assert.assertEquals(fpA.get(hb).getLikelihoods(),fpB.get(hb).getLikelihoods());
         }
@@ -308,6 +333,7 @@ public class FingerprintCheckerTest {
         final Fingerprint combinedFp2 = new Fingerprint("test2", null, null);
         fingerprintIdDetailsFingerprintMap.values().forEach(combinedFp2::merge);
 
+        Assert.assertNotEquals(combinedFp.keySet().size(), 0);
         for (final HaplotypeBlock block : combinedFp.keySet()) {
             Assert.assertEquals(combinedFp.get(block), combinedFp2.get(block));
         }
@@ -319,9 +345,12 @@ public class FingerprintCheckerTest {
         final Map<FingerprintIdDetails, Fingerprint> fingerprintIdDetailsFingerprintMap2 =
                 Fingerprint.mergeFingerprintsBy(fingerprintIdDetailsFingerprintMap, bySample);
 
+        Assert.assertNotEquals(fingerprintIdDetailsFingerprintMap1.keySet().size(), 0);
         for (final FingerprintIdDetails fpd1 : fingerprintIdDetailsFingerprintMap1.keySet()) {
             final Fingerprint fingerprint1 = fingerprintIdDetailsFingerprintMap1.get(fpd1);
             final Fingerprint fingerprint2 = fingerprintIdDetailsFingerprintMap2.get(fpd1);
+
+            Assert.assertNotEquals(fingerprint1.keySet().size(), 0);
             for (final HaplotypeBlock block : fingerprint1.keySet()) {
                 Assert.assertEquals(fingerprint1.get(block), fingerprint2.get(block));
             }
@@ -347,6 +376,7 @@ public class FingerprintCheckerTest {
         final Fingerprint combinedFp2 = new Fingerprint("test", null, null);
         fingerprintIdDetailsFingerprintMap.values().forEach(combinedFp2::merge);
 
+        Assert.assertNotEquals(combinedFp.keySet().size(), 0);
         for (final HaplotypeBlock block : combinedFp.keySet()) {
             Assert.assertEquals(combinedFp.get(block).getHaplotype(), combinedFp2.get(block).getHaplotype());
             Assert.assertEquals(combinedFp.get(block).getLikelihoods(), combinedFp2.get(block).getLikelihoods());
@@ -358,15 +388,17 @@ public class FingerprintCheckerTest {
         final Map<FingerprintIdDetails, Fingerprint> fingerprintIdDetailsFingerprintMap2 =
                 Fingerprint.mergeFingerprintsBy(fingerprintIdDetailsFingerprintMap, bySample);
 
+        Assert.assertNotEquals(fingerprintIdDetailsFingerprintMap1.keySet().size(), 0);
         for (final FingerprintIdDetails fpd1 : fingerprintIdDetailsFingerprintMap1.keySet()) {
             final Fingerprint fingerprint1 = fingerprintIdDetailsFingerprintMap1.get(fpd1);
             final Fingerprint fingerprint2 = fingerprintIdDetailsFingerprintMap2.get(fpd1);
+
+            Assert.assertNotEquals(fingerprint1.keySet().size(), 0);
             for (final HaplotypeBlock block : fingerprint1.keySet()) {
                 Assert.assertEquals(fingerprint1.get(block).getLikelihoods(), fingerprint2.get(block).getLikelihoods());
             }
         }
     }
-
 
     @Test
     public void testWriteFingerprint() throws IOException {
@@ -382,5 +414,4 @@ public class FingerprintCheckerTest {
 
         VcfTestUtils.assertVcfFilesAreEqual(vcfOutput, vcfExpected);
     }
-
 }

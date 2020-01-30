@@ -24,7 +24,10 @@
 
 package picard.fingerprint;
 
+import htsjdk.utils.ValidationUtils;
 import picard.util.MathUtil;
+
+import java.util.Arrays;
 
 /**
  * Abstract class for storing and calculating various likelihoods and probabilities
@@ -64,6 +67,28 @@ public abstract class HaplotypeProbabilities {
         return MathUtil.pNormalizeVector(MathUtil.multiply(getLikelihoods(), getPriorProbablities()));
     }
 
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        final HaplotypeProbabilities that = (HaplotypeProbabilities) o;
+
+        if (haplotypeBlock != null ? !haplotypeBlock.equals(that.haplotypeBlock) : that.haplotypeBlock != null) {
+            return false;
+        }
+        return Arrays.equals(getLikelihoods(), that.getLikelihoods());
+    }
+
+    @Override
+    public int hashCode() {
+        return haplotypeBlock != null ? haplotypeBlock.hashCode() : 0;
+    }
+
     /**
      * Returns the likelihoods, in order, of the AA, Aa and aa haplotypes given the evidence
      * <p>
@@ -73,7 +98,7 @@ public abstract class HaplotypeProbabilities {
 
     public double[] getLogLikelihoods() {
         final double[] likelihoods = getLikelihoods();
-        final double[] lLikelihoods = new double[nGeno];
+        final double[] lLikelihoods = new double[NUM_GENOTYPES];
         for (final Genotype g : Genotype.values()){
             lLikelihoods[g.v] = Math.log10(likelihoods[g.v]);
         }
@@ -135,7 +160,7 @@ public abstract class HaplotypeProbabilities {
      * Returns the index of the highest probability which can then be used to look up
      * DiploidHaplotypes or DiploidGenotypes as appropriate.
      */
-    int getMostLikelyIndex() {
+    private int getMostLikelyIndex() {
         final double[] probs = getPosteriorProbabilities();
 
         if (probs[0] > probs[1] && probs[0] > probs[2]) return 0;
@@ -188,12 +213,11 @@ public abstract class HaplotypeProbabilities {
 
     public double scaledEvidenceProbabilityUsingGenotypeFrequencies(final double[] genotypeFrequencies) {
         final double[] likelihoods = getLikelihoods();
-        assert (genotypeFrequencies.length == nGeno);
-        assert (likelihoods.length == nGeno);
-
+        ValidationUtils.validateArg(genotypeFrequencies.length == NUM_GENOTYPES,"provided genotype frequencies must be length 3");
+        ValidationUtils.validateArg(likelihoods.length == NUM_GENOTYPES,"internal liklihoods must be length 3");
 
         double result = 0;
-        for (Genotype g: Genotype.values()){
+        for (Genotype g : Genotype.values()) {
             result += likelihoods[g.v] * genotypeFrequencies[g.v];
         }
         return result;
@@ -274,5 +298,6 @@ public abstract class HaplotypeProbabilities {
             this.v = v;
         }
     }
-    static final int nGeno = Genotype.values().length;
+    // A bit of shorthand since writing out "genotype.values().length" can get old.
+    static final int NUM_GENOTYPES = Genotype.values().length;
 }

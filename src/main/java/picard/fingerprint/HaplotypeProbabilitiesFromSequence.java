@@ -35,19 +35,15 @@ import htsjdk.samtools.util.QualityUtil;
 public class HaplotypeProbabilitiesFromSequence extends HaplotypeProbabilitiesUsingLogLikelihoods {
     protected int obsAllele1, obsAllele2, obsAlleleOther;
 
-    HaplotypeProbabilitiesFromSequence(final HaplotypeBlock haplotypeBlock, int ob1, int ob2, int obOther) {
-        this(haplotypeBlock);
-        obsAllele1 = ob1;
-        obsAllele2 = ob2;
-        obsAlleleOther = obOther;
-    }
-
     public HaplotypeProbabilitiesFromSequence(final HaplotypeBlock haplotypeBlock) {
         super(haplotypeBlock);
     }
 
     public HaplotypeProbabilitiesFromSequence(final HaplotypeProbabilitiesFromSequence other) {
-        this(other.getHaplotype() , other.obsAllele1,other.obsAllele2,other.obsAlleleOther);
+        super(other);
+        obsAllele1 = other.obsAllele1;
+        obsAllele2 = other.obsAllele2;
+        obsAlleleOther = other.obsAlleleOther;
     }
 
     @Override
@@ -97,7 +93,7 @@ public class HaplotypeProbabilitiesFromSequence extends HaplotypeProbabilitiesUs
      * @return
      */
     @Override
-    public HaplotypeProbabilities merge(final HaplotypeProbabilities other) {
+    public HaplotypeProbabilitiesFromSequence merge(final HaplotypeProbabilities other) {
         super.merge(other);
 
         if (!this.getHaplotype().equals(other.getHaplotype())) {
@@ -119,7 +115,7 @@ public class HaplotypeProbabilitiesFromSequence extends HaplotypeProbabilitiesUs
     }
 
     @Override
-    public HaplotypeProbabilities deepCopy() {
+    public HaplotypeProbabilitiesFromSequence deepCopy() {
         return new HaplotypeProbabilitiesFromSequence(this);
     }
 

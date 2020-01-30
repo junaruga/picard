@@ -24,6 +24,7 @@
 
 package picard.fingerprint;
 
+import htsjdk.utils.ValidationUtils;
 import htsjdk.variant.variantcontext.Allele;
 import picard.util.MathUtil;
 
@@ -58,12 +59,15 @@ public class HaplotypeProbabilitiesFromGenotypeLikelihoods extends HaplotypeProb
         assertSnpPartOfHaplotype(snp);
 
         // only allow biallelic snps
-        assert (logGenotypeLikelihoods.length == nGeno);
-        assert (alleles.size() == 2);
+        ValidationUtils.validateArg(logGenotypeLikelihoods.length == NUM_GENOTYPES,
+                () -> "LogGenotypueLikelihoods must be length 3, found " + logGenotypeLikelihoods.length);
+
+        ValidationUtils.validateArg(alleles.size() == 2,
+                () -> "alleles must be length 2, found " + alleles.size());
 
         //make sure that alleles are comparable to SNPs
-        for (int i = 0; i < alleles.size(); i++) {
-            assert (alleles.get(i).getBases().length == 1);
+        for (final Allele a : alleles) {
+            ValidationUtils.validateArg(a.getBases().length == 1, () -> "allele is supposed to be a SNP, found " + a.getBaseString());
         }
 
         final byte allele1 = alleles.get(0).getBases()[0];
@@ -89,11 +93,11 @@ public class HaplotypeProbabilitiesFromGenotypeLikelihoods extends HaplotypeProb
         }
 
         // if we are here it means that there was a mismatch in alleles...
-        assert false;
+        ValidationUtils.nonNull(null,"We really should not have reached this point in the code...");
     }
 
     @Override
-    public HaplotypeProbabilities deepCopy() {
+    public HaplotypeProbabilitiesFromGenotypeLikelihoods deepCopy() {
         return new HaplotypeProbabilitiesFromGenotypeLikelihoods(this);
     }
 }

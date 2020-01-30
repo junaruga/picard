@@ -24,25 +24,22 @@
 
 package picard.fingerprint;
 
-import java.util.Arrays;
-
 /**
  * Represents a set of HaplotypeProbabilities that were derived from a single SNP
  * genotype at a point in time.
  */
 public class HaplotypeProbabilitiesFromGenotype extends HaplotypeProbabilities {
     private final Snp snp;
-    private double[] likelihoods;
+    private final double[] likelihoods;
 
     @Override
-    public HaplotypeProbabilities deepCopy()  {
+    public HaplotypeProbabilitiesFromGenotype deepCopy()  {
         return new HaplotypeProbabilitiesFromGenotype(this);
     }
 
-    public HaplotypeProbabilitiesFromGenotype(final HaplotypeProbabilitiesFromGenotype other){
-        super(other.getHaplotype());
-        snp = other.snp;
-        likelihoods = Arrays.copyOf(other.likelihoods,other.likelihoods.length);
+    @SuppressWarnings("CopyConstructorMissesField")
+    public HaplotypeProbabilitiesFromGenotype(final HaplotypeProbabilitiesFromGenotype other) {
+        this(other.snp, other.getHaplotype(), other.likelihoods[0], other.likelihoods[1], other.likelihoods[2]);
     }
 
     public HaplotypeProbabilitiesFromGenotype(final Snp snp, final HaplotypeBlock haplotypeBlock,
@@ -55,18 +52,13 @@ public class HaplotypeProbabilitiesFromGenotype extends HaplotypeProbabilities {
     /** Returns the SNP who's genotype was used to construct the likelihoods. */
     @Override public Snp getRepresentativeSnp() { return snp; }
 
-
-    // TODO: this can't be right in general. At least one needs to divide by the prior to set things straight.
-    // TODO: The only saving grace is that this is normally used for cases where the priors are large and similar to each other.
-
-
     // simply returns the _likelihoods_ that were passed into the constructor.
     public double[] getLikelihoods() {
         return likelihoods;
     }
 
     @Override
-    public HaplotypeProbabilities merge(final HaplotypeProbabilities other) {
+    public HaplotypeProbabilitiesFromGenotype merge(final HaplotypeProbabilities other) {
         if (!this.getHaplotype().equals(other.getHaplotype())) {
             throw new IllegalArgumentException("Mismatched haplotypes in call to HaplotypeProbabilities.merge(): " +
                     getHaplotype() + ", " + other.getHaplotype());

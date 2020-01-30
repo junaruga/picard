@@ -193,7 +193,7 @@ public class CrosscheckFingerprintsTest extends CommandLineProgramTest {
             args.add("HAPLOTYPE_MAP=" + HAPLOTYPE_MAP);
         }
 
-        doTest(args.toArray(new String[args.size()]), metrics, expectedRetVal, expectedNMetrics, CrosscheckMetric.DataType.READGROUP, expectAllMatch);
+        doTest(args.toArray(new String[0]), metrics, expectedRetVal, expectedNMetrics, CrosscheckMetric.DataType.READGROUP, expectAllMatch);
     }
 
     @DataProvider(name = "cramsWithNoReference")

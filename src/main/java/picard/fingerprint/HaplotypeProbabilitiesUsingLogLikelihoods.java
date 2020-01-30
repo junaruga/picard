@@ -24,6 +24,7 @@
 
 package picard.fingerprint;
 
+import htsjdk.utils.ValidationUtils;
 import picard.util.MathUtil;
 import java.util.Arrays;
 
@@ -38,18 +39,18 @@ abstract class HaplotypeProbabilitiesUsingLogLikelihoods extends HaplotypeProbab
 
     // some derived classes might need to incorporate accumulated data before logLikelihood is usable.
     // use the getter to allow these classes to calculate the likelihood from the data.
-    final private double[] loglikelihoods = new double[nGeno];
+    private final double[] loglikelihoods = new double[NUM_GENOTYPES];
 
     private boolean likelihoodsNeedUpdating = true;
 
     // stored in order to reduce computation we store these partial results.
     // they need to be recalculated if loglikelihoodNeedsUpdating
 
-    final private double[] likelihoods = new double[nGeno];
-    final private double[] posteriorProbabilities = new double[nGeno];
+    private final double[] likelihoods = new double[NUM_GENOTYPES];
+    private final double[] posteriorProbabilities = new double[NUM_GENOTYPES];
 
     //normalized (likeihood * prior / normalization_factor)
-    final private double[] shiftedLogPosteriors = new double[nGeno];
+    private final double[] shiftedLogPosteriors = new double[NUM_GENOTYPES];
 
     public HaplotypeProbabilitiesUsingLogLikelihoods(final HaplotypeBlock haplotypeBlock) {
         super(haplotypeBlock);
@@ -57,10 +58,10 @@ abstract class HaplotypeProbabilitiesUsingLogLikelihoods extends HaplotypeProbab
 
     public HaplotypeProbabilitiesUsingLogLikelihoods(final HaplotypeProbabilitiesUsingLogLikelihoods other) {
         super(other.getHaplotype());
-        System.arraycopy(other.loglikelihoods, 0, loglikelihoods, 0, nGeno);
-        System.arraycopy(other.likelihoods, 0, likelihoods, 0, nGeno);
-        System.arraycopy(other.posteriorProbabilities, 0, posteriorProbabilities, 0, nGeno);
-        System.arraycopy(other.shiftedLogPosteriors, 0, shiftedLogPosteriors, 0, nGeno);
+        System.arraycopy(other.loglikelihoods, 0, loglikelihoods, 0, NUM_GENOTYPES);
+        System.arraycopy(other.likelihoods, 0, likelihoods, 0, NUM_GENOTYPES);
+        System.arraycopy(other.posteriorProbabilities, 0, posteriorProbabilities, 0, NUM_GENOTYPES);
+        System.arraycopy(other.shiftedLogPosteriors, 0, shiftedLogPosteriors, 0, NUM_GENOTYPES);
         likelihoodsNeedUpdating = other.likelihoodsNeedUpdating;
     }
 
@@ -86,7 +87,7 @@ abstract class HaplotypeProbabilitiesUsingLogLikelihoods extends HaplotypeProbab
      * @return
      */
     @Override
-    public HaplotypeProbabilities merge(final HaplotypeProbabilities other) {
+    public HaplotypeProbabilitiesUsingLogLikelihoods merge(final HaplotypeProbabilities other) {
         if (!this.getHaplotype().equals(other.getHaplotype())) {
             throw new IllegalArgumentException("Mismatched haplotypes in call to HaplotypeProbabilities.merge(): " +
                     getHaplotype() + ", " + other.getHaplotype());
@@ -128,7 +129,7 @@ abstract class HaplotypeProbabilitiesUsingLogLikelihoods extends HaplotypeProbab
      */
     private double[] getShiftedLogPosterior0() {
         final double[] ll = this.getLogLikelihoods();
-        final double[] shiftedLogPosterior = new double[nGeno];
+        final double[] shiftedLogPosterior = new double[NUM_GENOTYPES];
         final double[] haplotypeFrequencies = getPriorProbablities();
         for (final Genotype g : Genotype.values()) {
             shiftedLogPosterior[g.v] = ll[g.v] + Math.log10(haplotypeFrequencies[g.v]);
@@ -168,9 +169,10 @@ abstract class HaplotypeProbabilitiesUsingLogLikelihoods extends HaplotypeProbab
     }
 
     public void setLogLikelihoods(final double[] ll) {
-        assert (ll.length == nGeno);
+        ValidationUtils.validateArg(ll.length == NUM_GENOTYPES,
+                ()->"logLikelihood must have length 3, found " + ll.length);
 
-        System.arraycopy(ll, 0, loglikelihoods, 0, nGeno);
+        System.arraycopy(ll, 0, loglikelihoods, 0, NUM_GENOTYPES);
         likelihoodsNeedUpdating = true;
     }
 
@@ -199,9 +201,9 @@ abstract class HaplotypeProbabilitiesUsingLogLikelihoods extends HaplotypeProbab
 
     private void updateDependentValues() {
         if (likelihoodsNeedUpdating) {
-            System.arraycopy(getLikelihoods0(), 0, likelihoods, 0, nGeno);
-            System.arraycopy(getPosteriorProbabilities0(), 0, posteriorProbabilities, 0, nGeno);
-            System.arraycopy(getShiftedLogPosterior0(), 0, shiftedLogPosteriors, 0, nGeno);
+            System.arraycopy(getLikelihoods0(), 0, likelihoods, 0, NUM_GENOTYPES);
+            System.arraycopy(getPosteriorProbabilities0(), 0, posteriorProbabilities, 0, NUM_GENOTYPES);
+            System.arraycopy(getShiftedLogPosterior0(), 0, shiftedLogPosteriors, 0, NUM_GENOTYPES);
 
             likelihoodsNeedUpdating = false;
         }

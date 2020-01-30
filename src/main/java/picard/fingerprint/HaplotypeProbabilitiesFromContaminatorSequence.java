@@ -25,6 +25,7 @@
 package picard.fingerprint;
 
 import htsjdk.samtools.util.QualityUtil;
+import htsjdk.utils.ValidationUtils;
 import picard.util.MathUtil;
 
 /**
@@ -42,27 +43,21 @@ public class HaplotypeProbabilitiesFromContaminatorSequence extends HaplotypePro
     // and only collated once all the data is in.
     private final double[][] likelihoodMap = {{1, 1, 1}, {1, 1, 1}, {1, 1, 1}};
 
-    HaplotypeProbabilitiesFromContaminatorSequence(final HaplotypeBlock haplotypeBlock, final double contamination, int ob1, int ob2, int obOther) {
-        this(haplotypeBlock, contamination);
-
-        obsAllele1 = ob1;
-        obsAllele2 = ob2;
-        obsAlleleOther = obOther;
-    }
-
     public HaplotypeProbabilitiesFromContaminatorSequence(final HaplotypeBlock haplotypeBlock, final double contamination) {
         super(haplotypeBlock);
 
-        assert (contamination <= 1.0);
-        assert (contamination >= 0.0);
+        ValidationUtils.validateArg(contamination <= 1.0, ()->"contamination must be <=1, found " + contamination);
+        ValidationUtils.validateArg(contamination >= 0.0, ()->"contamination must be >=0, found " + contamination);
 
         this.contamination = contamination;
     }
 
     public HaplotypeProbabilitiesFromContaminatorSequence(HaplotypeProbabilitiesFromContaminatorSequence other){
-        this(other.getHaplotype(),other.contamination);
+        super(other);
+
+        contamination = other.contamination;
         for (final Genotype g : Genotype.values()) {
-            System.arraycopy(other.likelihoodMap[g.v], 0, likelihoodMap[g.v], 0, nGeno);
+            System.arraycopy(other.likelihoodMap[g.v], 0, likelihoodMap[g.v], 0, NUM_GENOTYPES);
         }
     }
 
@@ -104,7 +99,7 @@ public class HaplotypeProbabilitiesFromContaminatorSequence extends HaplotypePro
 
     //a function needed to update the logLikelihoods from the likelihoodMap.
     private void updateLikelihoods() {
-        final double[] ll = new double[nGeno];
+        final double[] ll = new double[NUM_GENOTYPES];
         for (final Genotype contGeno : Genotype.values()) {
             // p(a | g_c) = \sum_g_m { P(g_m) \prod_i P(a_i| g_m, g_c)}
             ll[contGeno.v] = Math.log10(MathUtil.sum(MathUtil.multiply(this.getPriorProbablities(), likelihoodMap[contGeno.v])));
@@ -113,12 +108,12 @@ public class HaplotypeProbabilitiesFromContaminatorSequence extends HaplotypePro
     }
 
     @Override
-    public HaplotypeProbabilities deepCopy() {
+    public HaplotypeProbabilitiesFromContaminatorSequence deepCopy() {
         return new HaplotypeProbabilitiesFromContaminatorSequence(this);
     }
 
     @Override
-    public HaplotypeProbabilities merge(final HaplotypeProbabilities other) {
+    public HaplotypeProbabilitiesFromContaminatorSequence merge(final HaplotypeProbabilities other) {
         super.merge(other);
 
         if (!this.getHaplotype().equals(other.getHaplotype())) {
