@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -332,7 +333,7 @@ public class FingerprintCheckerTest {
 
         Assert.assertNotEquals(combinedFp.keySet().size(), 0);
         for (final HaplotypeBlock block : combinedFp.keySet()) {
-            Assert.assertEquals(combinedFp.get(block), combinedFp2.get(block));
+            Assert.assertTrue(FingerprintingTestUtils.areHaplotypeProbabilitiesEqual(combinedFp.get(block), combinedFp2.get(block)));
         }
 
         final Function<FingerprintIdDetails, String> bySample = Fingerprint.getFingerprintIdDetailsStringFunction(CrosscheckMetric.DataType.SAMPLE);
@@ -349,16 +350,17 @@ public class FingerprintCheckerTest {
 
             Assert.assertNotEquals(fingerprint1.keySet().size(), 0);
             for (final HaplotypeBlock block : fingerprint1.keySet()) {
-                Assert.assertEquals(fingerprint1.get(block), fingerprint2.get(block));
+                Assert.assertTrue(FingerprintingTestUtils.areHaplotypeProbabilitiesEqual(fingerprint1.get(block), fingerprint2.get(block)));
             }
         }
     }
 
+
     @Test
     public void testMergeIsSafeFromVCF() {
-        final Path na12891_fp =TEST_DATA_DIR.toPath().resolve("NA12891.fp.vcf");
-        final Path na12891_g =TEST_DATA_DIR.toPath().resolve("NA12891.vcf");
-        final Path na12892_fp =TEST_DATA_DIR.toPath().resolve("NA12892.fp.vcf");
+        final Path na12891_fp = TEST_DATA_DIR.toPath().resolve("NA12891.fp.vcf");
+        final Path na12891_g = TEST_DATA_DIR.toPath().resolve("NA12891.vcf");
+        final Path na12892_fp = TEST_DATA_DIR.toPath().resolve("NA12892.fp.vcf");
         final Path na12892_g = TEST_DATA_DIR.toPath().resolve( "NA12892.vcf");
 
         final List<Path> listOfFiles = Arrays.asList(na12891_fp, na12891_g, na12892_fp, na12892_g);
@@ -373,8 +375,7 @@ public class FingerprintCheckerTest {
 
         Assert.assertNotEquals(combinedFp.keySet().size(), 0);
         for (final HaplotypeBlock block : combinedFp.keySet()) {
-            Assert.assertEquals(combinedFp.get(block).getHaplotype(), combinedFp2.get(block).getHaplotype());
-            Assert.assertEquals(combinedFp.get(block).getLikelihoods(), combinedFp2.get(block).getLikelihoods());
+            Assert.assertTrue(FingerprintingTestUtils.areHaplotypeProbabilitiesEqual(combinedFp.get(block), combinedFp2.get(block)));
         }
 
         final Function<FingerprintIdDetails, String> bySample = Fingerprint.getFingerprintIdDetailsStringFunction(CrosscheckMetric.DataType.SAMPLE);
@@ -391,7 +392,7 @@ public class FingerprintCheckerTest {
 
             Assert.assertNotEquals(fingerprint1.keySet().size(), 0);
             for (final HaplotypeBlock block : fingerprint1.keySet()) {
-                Assert.assertEquals(fingerprint1.get(block).getLikelihoods(), fingerprint2.get(block).getLikelihoods());
+                Assert.assertTrue(FingerprintingTestUtils.areHaplotypeProbabilitiesEqual(fingerprint1.get(block), fingerprint2.get(block)));
             }
         }
     }

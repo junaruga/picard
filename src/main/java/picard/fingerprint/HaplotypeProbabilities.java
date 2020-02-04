@@ -27,9 +27,6 @@ package picard.fingerprint;
 import htsjdk.utils.ValidationUtils;
 import picard.util.MathUtil;
 
-import java.util.Arrays;
-import java.util.Objects;
-
 /**
  * Abstract class for storing and calculating various likelihoods and probabilities
  * for haplotype alleles given evidence.
@@ -66,29 +63,6 @@ public abstract class HaplotypeProbabilities {
      */
     public double[] getPosteriorProbabilities() {
         return MathUtil.pNormalizeVector(MathUtil.multiply(getLikelihoods(), getPriorProbablities()));
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        final HaplotypeProbabilities otherHp = (HaplotypeProbabilities) o;
-
-        if (!Objects.equals(this.haplotypeBlock, otherHp.haplotypeBlock)){
-            return false;
-        }
-        return Arrays.equals(getLikelihoods(), otherHp.getLikelihoods());
-    }
-
-    @Override
-    public int hashCode() {
-        // Since the likelihoods array is mutable, we cannot use it in the hashCode
-        // (or else we could lose objects in a hash table)
-        return haplotypeBlock != null ? haplotypeBlock.hashCode() : 0;
     }
 
     /**
