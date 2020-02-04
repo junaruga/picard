@@ -46,13 +46,13 @@ public class HaplotypeProbabilitiesFromContaminatorSequence extends HaplotypePro
     public HaplotypeProbabilitiesFromContaminatorSequence(final HaplotypeBlock haplotypeBlock, final double contamination) {
         super(haplotypeBlock);
 
-        ValidationUtils.validateArg(contamination <= 1.0, ()->"contamination must be <=1, found " + contamination);
-        ValidationUtils.validateArg(contamination >= 0.0, ()->"contamination must be >=0, found " + contamination);
+        ValidationUtils.validateArg(contamination <= 1.0, () -> "contamination must be <=1, found " + contamination);
+        ValidationUtils.validateArg(contamination >= 0.0, () -> "contamination must be >=0, found " + contamination);
 
         this.contamination = contamination;
     }
 
-    public HaplotypeProbabilitiesFromContaminatorSequence(HaplotypeProbabilitiesFromContaminatorSequence other){
+    public HaplotypeProbabilitiesFromContaminatorSequence(HaplotypeProbabilitiesFromContaminatorSequence other) {
         super(other);
 
         contamination = other.contamination;

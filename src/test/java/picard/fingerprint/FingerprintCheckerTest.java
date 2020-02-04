@@ -313,7 +313,6 @@ public class FingerprintCheckerTest {
         }
     }
 
-
     @Test
     public void testMergeIsSafeFromSequence() {
         final Path na12891_r1 = new File(TEST_DATA_DIR, "NA12891.over.fingerprints.r1.sam").toPath();
@@ -322,9 +321,7 @@ public class FingerprintCheckerTest {
         final Path na12892_r2 = new File(TEST_DATA_DIR, "NA12892.over.fingerprints.r2.sam").toPath();
 
         final List<Path> listOfFiles = Arrays.asList(na12891_r1, na12891_r2, na12892_r1, na12892_r2);
-
         final FingerprintChecker checker = new FingerprintChecker(SUBSETTED_HAPLOTYPE_DATABASE_FOR_TESTING);
-
         final Map<FingerprintIdDetails, Fingerprint> fingerprintIdDetailsFingerprintMap = checker.fingerprintFiles(listOfFiles, 1, 0, TimeUnit.DAYS);
 
         final Fingerprint combinedFp = new Fingerprint("test", null, null);
@@ -359,15 +356,13 @@ public class FingerprintCheckerTest {
 
     @Test
     public void testMergeIsSafeFromVCF() {
-        final Path na12891_fp = new File(TEST_DATA_DIR, "NA12891.fp.vcf").toPath();
-        final Path na12891_g = new File(TEST_DATA_DIR, "NA12891.vcf").toPath();
-        final Path na12892_fp = new File(TEST_DATA_DIR, "NA12892.fp.vcf").toPath();
-        final Path na12892_g = new File(TEST_DATA_DIR, "NA12892.vcf").toPath();
+        final Path na12891_fp =TEST_DATA_DIR.toPath().resolve("NA12891.fp.vcf");
+        final Path na12891_g =TEST_DATA_DIR.toPath().resolve("NA12891.vcf");
+        final Path na12892_fp =TEST_DATA_DIR.toPath().resolve("NA12892.fp.vcf");
+        final Path na12892_g = TEST_DATA_DIR.toPath().resolve( "NA12892.vcf");
 
         final List<Path> listOfFiles = Arrays.asList(na12891_fp, na12891_g, na12892_fp, na12892_g);
-
         final FingerprintChecker checker = new FingerprintChecker(SUBSETTED_HAPLOTYPE_DATABASE_FOR_TESTING);
-
         final Map<FingerprintIdDetails, Fingerprint> fingerprintIdDetailsFingerprintMap = checker.fingerprintFiles(listOfFiles, 1, 0, TimeUnit.DAYS);
 
         final Fingerprint combinedFp = new Fingerprint("test", null, null);
@@ -383,6 +378,7 @@ public class FingerprintCheckerTest {
         }
 
         final Function<FingerprintIdDetails, String> bySample = Fingerprint.getFingerprintIdDetailsStringFunction(CrosscheckMetric.DataType.SAMPLE);
+
         final Map<FingerprintIdDetails, Fingerprint> fingerprintIdDetailsFingerprintMap1 =
                 Fingerprint.mergeFingerprintsBy(fingerprintIdDetailsFingerprintMap, bySample);
         final Map<FingerprintIdDetails, Fingerprint> fingerprintIdDetailsFingerprintMap2 =

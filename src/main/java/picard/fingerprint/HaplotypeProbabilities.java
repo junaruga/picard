@@ -28,6 +28,7 @@ import htsjdk.utils.ValidationUtils;
 import picard.util.MathUtil;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * Abstract class for storing and calculating various likelihoods and probabilities
@@ -75,17 +76,18 @@ public abstract class HaplotypeProbabilities {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+        final HaplotypeProbabilities otherHp = (HaplotypeProbabilities) o;
 
-        final HaplotypeProbabilities that = (HaplotypeProbabilities) o;
-
-        if (haplotypeBlock != null ? !haplotypeBlock.equals(that.haplotypeBlock) : that.haplotypeBlock != null) {
+        if (!Objects.equals(this.haplotypeBlock, otherHp.haplotypeBlock)){
             return false;
         }
-        return Arrays.equals(getLikelihoods(), that.getLikelihoods());
+        return Arrays.equals(getLikelihoods(), otherHp.getLikelihoods());
     }
 
     @Override
     public int hashCode() {
+        // Since the likelihoods array is mutable, we cannot use it in the hashCode
+        // (or else we could lose objects in a hash table)
         return haplotypeBlock != null ? haplotypeBlock.hashCode() : 0;
     }
 
@@ -213,8 +215,8 @@ public abstract class HaplotypeProbabilities {
 
     public double scaledEvidenceProbabilityUsingGenotypeFrequencies(final double[] genotypeFrequencies) {
         final double[] likelihoods = getLikelihoods();
-        ValidationUtils.validateArg(genotypeFrequencies.length == NUM_GENOTYPES,"provided genotype frequencies must be length 3");
-        ValidationUtils.validateArg(likelihoods.length == NUM_GENOTYPES,"internal liklihoods must be length 3");
+        ValidationUtils.validateArg(genotypeFrequencies.length == NUM_GENOTYPES, "provided genotype frequencies must be length 3");
+        ValidationUtils.validateArg(likelihoods.length == NUM_GENOTYPES, "internal liklihoods must be length 3");
 
         double result = 0;
         for (Genotype g : Genotype.values()) {

@@ -102,8 +102,7 @@ public class CrosscheckReadGroupFingerprintsTest {
         doTest(args, metrics, expectedRetVal, expectedNMetrics * expectedNMetrics , CrosscheckMetric.DataType.READGROUP, expectAllMatch);
     }
 
-
-    @DataProvider()
+    @DataProvider
     public Object[][] bamFilesLBs() {
 
         return new Object[][]{
