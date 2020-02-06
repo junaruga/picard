@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class CombineGenotypingArrayVcfsTest {
@@ -20,9 +21,7 @@ public class CombineGenotypingArrayVcfsTest {
         final CombineGenotypingArrayVcfs combineGenotypingArrayVcfs = new CombineGenotypingArrayVcfs();
         final File inputVcf1 = TEST_DATA_DIR.resolve("input.vcf").toFile();
         final File inputVcf2 = TEST_DATA_DIR.resolve("input2.vcf").toFile();
-        final List<File> inputs = new ArrayList<File>();
-        inputs.add(inputVcf1);
-        inputs.add(inputVcf2);
+        final List<File> inputs = Arrays.asList(inputVcf1, inputVcf2);
 
         final File output = File.createTempFile("output", ".vcf");
         output.deleteOnExit();

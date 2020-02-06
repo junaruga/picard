@@ -6,7 +6,6 @@ import htsjdk.samtools.util.IOUtil;
 import htsjdk.samtools.util.Log;
 import htsjdk.samtools.util.ProgressLogger;
 import htsjdk.variant.variantcontext.CommonInfo;
-import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
@@ -56,7 +55,7 @@ public class CombineGenotypingArrayVcfs extends CommandLineProgram {
                     "The input VCFs must not share sample Ids. " +
                     "<h4>Usage example:</h4>" +
                     "<pre>" +
-                    "java -jar picard.jar VcfToAdpc \\<br />" +
+                    "java -jar picard.jar CombineGenotypingArrayVcfs \\<br />" +
                     "      INPUT=input1.vcf \\<br />" +
                     "      INPUT=input2.vcf \\<br />" +
                     "      OUTPUT=output.vcf" +
@@ -70,7 +69,7 @@ public class CombineGenotypingArrayVcfs extends CommandLineProgram {
 
     private final Log log = Log.getInstance(CombineGenotypingArrayVcfs.class);
 
-    final private ProgressLogger progressLogger = new ProgressLogger(log, 10000);
+    private final ProgressLogger progressLogger = new ProgressLogger(log, 10000);
 
     public CombineGenotypingArrayVcfs() {
         CREATE_INDEX = true;
@@ -101,7 +100,7 @@ public class CombineGenotypingArrayVcfs extends CommandLineProgram {
     public int doWork() {
         log.info("Checking inputs.");
         final List<File> UNROLLED_INPUT = IOUtil.unrollFiles(INPUT, IOUtil.VCF_EXTENSIONS);
-        for (final File f: UNROLLED_INPUT) IOUtil.assertFileIsReadable(f);
+        IOUtil.assertFilesAreReadable(UNROLLED_INPUT);
         IOUtil.assertFileIsWritable(OUTPUT);
 
         final SAMSequenceDictionary sequenceDictionary = VCFFileReader.getSequenceDictionary(UNROLLED_INPUT.get(0));
@@ -200,9 +199,7 @@ public class CombineGenotypingArrayVcfs extends CommandLineProgram {
             }
             checkThatAllelesMatch(vc, first);
 
-            for (final Genotype g : vc.getGenotypes()) {
-                genotypes.add(g);
-            }
+            genotypes.addAll(vc.getGenotypes());
 
             // We always take the QUAL of the first VC with a non-MISSING qual for the combined value
             if ( log10PError == CommonInfo.NO_LOG10_PERROR )
