@@ -15,6 +15,23 @@ jdk:
   - oraclejdk8
   - openjdk8
   - openjdk11
+matrix:
+  include:
+    - arch: arm64
+      dist: xenial
+      jdk: openjdk8
+      env:
+        - RUN_BARCLAY_TESTS=true
+    - arch: ppc64le
+      dist: xenial
+      jdk: openjdk8
+      env:
+        - RUN_BARCLAY_TESTS=true
+    - arch: s390x
+      dist: xenial
+      jdk: openjdk8
+      env:
+        - RUN_BARCLAY_TESTS=true
 before_install:
   - wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
   - sudo apt-get -qq update
